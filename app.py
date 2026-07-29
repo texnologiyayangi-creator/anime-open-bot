@@ -19,7 +19,6 @@ SESSION_STRING = os.environ.get("SESSION_STRING")
 BOT_USERNAME = os.environ.get("BOT_USERNAME", "")
 CHANNEL_USERNAME = os.environ.get("CHANNEL_USERNAME")
 
-# === Event loop va client thread ichida yaratiladi ===
 tele_loop = None
 tele_client = None
 _ready = threading.Event()
@@ -44,18 +43,19 @@ _ready.wait(timeout=30)
 
 def run_async(coro):
     future = asyncio.run_coroutine_threadsafe(coro, tele_loop)
-    return future.result(timeout=60)
+    return future.result(timeout=300)
 
 async def ensure_connected():
     if not tele_client.is_connected():
         await tele_client.connect()
 
-# === Faqat video postlarni olish ===
-async def fetch_channel_posts(limit=100):
+# === Barcha video postlarni olish (pagination bilan) ===
+async def fetch_channel_posts(offset_id=0, limit=50):
     await ensure_connected()
     posts = []
     channel = CHANNEL_USERNAME.lstrip("@")
-    async for msg in tele_client.iter_messages(CHANNEL_USERNAME, limit=limit):
+    count = 0
+    async for msg in tele_client.iter_messages(CHANNEL_USERNAME, limit=None, offset_id=offset_id, reverse=False):
         if msg.media is None:
             continue
         is_video = False
@@ -83,14 +83,18 @@ async def fetch_channel_posts(limit=100):
             "id": msg.id, "title": title, "link": link,
             "size_mb": round(size_mb, 1), "date": date_str, "views": msg.views or 0,
         })
+        count += 1
+        if count >= limit:
+            break
     return posts
 
-# === Barcha xabarlarni olish (Telegram kabi) ===
-async def fetch_all_messages(limit=100):
+# === Barcha xabarlarni olish (pagination bilan) ===
+async def fetch_all_messages(offset_id=0, limit=50):
     await ensure_connected()
     messages = []
     channel = CHANNEL_USERNAME.lstrip("@")
-    async for msg in tele_client.iter_messages(CHANNEL_USERNAME, limit=limit):
+    count = 0
+    async for msg in tele_client.iter_messages(CHANNEL_USERNAME, limit=None, offset_id=offset_id, reverse=False):
         msg_type = "text"
         size_mb = 0
         file_name = None
@@ -123,14 +127,15 @@ async def fetch_all_messages(limit=100):
             "link": link, "size_mb": round(size_mb, 1) if size_mb else 0,
             "date": date_str, "views": msg.views or 0,
         })
+        count += 1
+        if count >= limit:
+            break
     return messages
 
-# === Botga xabar yuborish (nom bilan) ===
+# === Botga xabar yuborish ===
 async def send_to_bot(link, name=""):
     await ensure_connected()
-    # Avval havolani yuboramiz
     await tele_client.send_message(BOT_USERNAME, link)
-    # Agar nom berilgan bo'lsa — keyin nom yuboramiz
     if name:
         import asyncio as _asyncio
         await _asyncio.sleep(0.5)
@@ -144,20 +149,26 @@ def index():
 
 @app.route("/api/posts")
 def api_posts():
-    limit = int(request.args.get("limit", 100))
+    limit = int(request.args.get("limit", 50))
+    offset_id = int(request.args.get("offset_id", 0))
     try:
-        posts = run_async(fetch_channel_posts(limit))
-        return jsonify({"ok": True, "posts": posts, "total": len(posts)})
+        posts = run_async(fetch_channel_posts(offset_id=offset_id, limit=limit))
+        has_more = len(posts) >= limit
+        next_offset = posts[-1]["id"] if posts else 0
+        return jsonify({"ok": True, "posts": posts, "total": len(posts), "has_more": has_more, "next_offset": next_offset})
     except Exception as e:
         logging.error(f"Posts xatosi: {e}")
         return jsonify({"ok": False, "error": str(e)}), 500
 
 @app.route("/api/messages")
 def api_messages():
-    limit = int(request.args.get("limit", 100))
+    limit = int(request.args.get("limit", 50))
+    offset_id = int(request.args.get("offset_id", 0))
     try:
-        messages = run_async(fetch_all_messages(limit))
-        return jsonify({"ok": True, "messages": messages, "total": len(messages)})
+        messages = run_async(fetch_all_messages(offset_id=offset_id, limit=limit))
+        has_more = len(messages) >= limit
+        next_offset = messages[-1]["id"] if messages else 0
+        return jsonify({"ok": True, "messages": messages, "total": len(messages), "has_more": has_more, "next_offset": next_offset})
     except Exception as e:
         logging.error(f"Messages xatosi: {e}")
         return jsonify({"ok": False, "error": str(e)}), 500
