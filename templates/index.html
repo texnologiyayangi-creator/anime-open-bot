@@ -6,401 +6,127 @@
   <title>📺 Video Panel</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #0d0d1a;
-      --surface: #161628;
-      --surface2: #1e1e35;
-      --border: #2a2a4a;
-      --accent: #6c8fff;
-      --accent2: #a78bfa;
-      --success: #34d399;
-      --warning: #fbbf24;
-      --danger: #f87171;
-      --text: #e2e8f0;
-      --text2: #94a3b8;
-      --text3: #4a5568;
+      --bg: #0d0d1a; --surface: #161628; --surface2: #1e1e35;
+      --border: #2a2a4a; --accent: #6c8fff; --accent2: #a78bfa;
+      --success: #34d399; --warning: #fbbf24; --danger: #f87171;
+      --text: #e2e8f0; --text2: #94a3b8; --text3: #4a5568;
     }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      min-height: 100vh;
-    }
-
-    /* === HEADER === */
-    .header {
-      background: linear-gradient(135deg, #1a1a35 0%, #0d0d1a 100%);
-      border-bottom: 1px solid var(--border);
-      padding: 16px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      backdrop-filter: blur(10px);
-    }
-
+    /* HEADER */
+    .header { background: linear-gradient(135deg, #1a1a35 0%, #0d0d1a 100%); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px); }
     .header-left { display: flex; align-items: center; gap: 12px; }
-
-    .logo {
-      font-size: 1.3rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .channel-badge {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--accent);
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
-
+    .logo { font-size: 1.3rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .channel-badge { background: var(--surface2); border: 1px solid var(--border); color: var(--accent); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
     .header-right { display: flex; align-items: center; gap: 8px; }
 
-    .btn {
-      border: none;
-      border-radius: 10px;
-      padding: 9px 16px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .btn:active { transform: scale(0.96); }
+    /* TABS */
+    .tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--surface); position: sticky; top: 57px; z-index: 99; }
+    .tab { flex: 1; padding: 13px; text-align: center; font-size: 0.9rem; font-weight: 600; color: var(--text2); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); background: var(--surface2); }
+    .tab:hover { color: var(--text); background: var(--surface2); }
 
+    /* BTN */
+    .btn { border: none; border-radius: 10px; padding: 9px 16px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 6px; }
+    .btn:active { transform: scale(0.96); }
     .btn-primary { background: var(--accent); color: #0d0d1a; }
     .btn-primary:hover { background: #8aaeff; }
     .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-    .btn-ghost {
-      background: var(--surface2);
-      color: var(--text2);
-      border: 1px solid var(--border);
-    }
+    .btn-ghost { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
     .btn-ghost:hover { background: var(--border); color: var(--text); }
 
-    .btn-success { background: var(--success); color: #0d0d1a; }
-    .btn-danger { background: var(--danger); color: #0d0d1a; }
-
-    /* === TOOLBAR === */
-    .toolbar {
-      padding: 16px 24px;
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .search-box {
-      flex: 1;
-      min-width: 200px;
-      position: relative;
-    }
-
-    .search-box input {
-      width: 100%;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 16px 10px 38px;
-      color: var(--text);
-      font-size: 0.9rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
+    /* TOOLBAR */
+    .toolbar { padding: 16px 24px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; border-bottom: 1px solid var(--border); }
+    .search-box { flex: 1; min-width: 200px; position: relative; }
+    .search-box input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 16px 10px 38px; color: var(--text); font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
     .search-box input:focus { border-color: var(--accent); }
-    .search-box::before {
-      content: "🔍";
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 0.85rem;
-    }
-
-    .filter-select {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 14px;
-      color: var(--text);
-      font-size: 0.85rem;
-      outline: none;
-      cursor: pointer;
-    }
-
-    .bulk-info {
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      color: #fff;
-      border-radius: 10px;
-      padding: 9px 16px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      display: none;
-      align-items: center;
-      gap: 8px;
-    }
+    .search-box::before { content: "🔍"; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 0.85rem; }
+    .filter-select { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; color: var(--text); font-size: 0.85rem; outline: none; cursor: pointer; }
+    .bulk-info { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border-radius: 10px; padding: 9px 16px; font-size: 0.85rem; font-weight: 600; display: none; align-items: center; gap: 8px; }
     .bulk-info.visible { display: flex; }
 
-    /* === STATS BAR === */
-    .stats-bar {
-      padding: 10px 24px;
-      display: flex;
-      gap: 20px;
-      font-size: 0.8rem;
-      color: var(--text2);
-      border-bottom: 1px solid var(--border);
-    }
+    /* STATS */
+    .stats-bar { padding: 10px 24px; display: flex; gap: 20px; font-size: 0.8rem; color: var(--text2); border-bottom: 1px solid var(--border); }
     .stats-bar span { display: flex; align-items: center; gap: 4px; }
 
-    /* === MAIN CONTENT === */
-    .content {
-      padding: 20px 24px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
+    /* CONTENT */
+    .content { padding: 20px 24px; max-width: 1200px; margin: 0 auto; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
 
-    /* === VIDEO GRID === */
-    .videos-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 12px;
-    }
+    /* QUICK SEND */
+    .quick-send { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 16px; display: flex; gap: 10px; align-items: center; }
+    .quick-send label { font-size: 0.85rem; color: var(--text2); white-space: nowrap; }
+    .quick-send input { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 9px 14px; color: var(--text); font-size: 0.9rem; outline: none; }
+    .quick-send input:focus { border-color: var(--accent); }
 
-    /* === VIDEO CARD === */
-    .video-card {
-      background: var(--surface);
-      border: 1.5px solid var(--border);
-      border-radius: 14px;
-      padding: 14px;
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-      cursor: pointer;
-      transition: all 0.15s;
-      position: relative;
-      user-select: none;
-    }
-    .video-card:hover {
-      border-color: var(--accent);
-      background: var(--surface2);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 20px rgba(108, 143, 255, 0.1);
-    }
-    .video-card.selected {
-      border-color: var(--accent);
-      background: rgba(108, 143, 255, 0.08);
-    }
-    .video-card.sending {
-      opacity: 0.6;
-      pointer-events: none;
-      border-color: var(--warning);
-    }
-    .video-card.sent {
-      border-color: var(--success);
-      background: rgba(52, 211, 153, 0.05);
-    }
+    /* VIDEO GRID */
+    .videos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
 
-    .card-check {
-      width: 20px;
-      height: 20px;
-      border-radius: 6px;
-      border: 2px solid var(--border);
-      background: var(--surface2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      transition: all 0.15s;
-      margin-top: 2px;
-    }
-    .video-card.selected .card-check {
-      background: var(--accent);
-      border-color: var(--accent);
-    }
-    .card-check::after {
-      content: "✓";
-      color: #0d0d1a;
-      font-size: 0.7rem;
-      font-weight: 800;
-      display: none;
-    }
+    /* VIDEO CARD */
+    .video-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 14px; display: flex; gap: 12px; align-items: flex-start; cursor: pointer; transition: all 0.15s; position: relative; user-select: none; }
+    .video-card:hover { border-color: var(--accent); background: var(--surface2); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(108,143,255,0.1); }
+    .video-card.selected { border-color: var(--accent); background: rgba(108,143,255,0.08); }
+    .video-card.sending { opacity: 0.6; pointer-events: none; border-color: var(--warning); }
+    .video-card.sent { border-color: var(--success); background: rgba(52,211,153,0.05); }
+    .card-check { width: 20px; height: 20px; border-radius: 6px; border: 2px solid var(--border); background: var(--surface2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; margin-top: 2px; }
+    .video-card.selected .card-check { background: var(--accent); border-color: var(--accent); }
+    .card-check::after { content: "✓"; color: #0d0d1a; font-size: 0.7rem; font-weight: 800; display: none; }
     .video-card.selected .card-check::after { display: block; }
-
-    .card-num {
-      min-width: 36px;
-      height: 36px;
-      background: var(--surface2);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 0.9rem;
-      color: var(--accent);
-      flex-shrink: 0;
-    }
-
+    .card-num { min-width: 36px; height: 36px; background: var(--surface2); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; color: var(--accent); flex-shrink: 0; }
     .card-body { flex: 1; overflow: hidden; }
-
-    .card-title {
-      font-size: 0.88rem;
-      color: var(--text);
-      margin-bottom: 6px;
-      line-height: 1.4;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .card-meta {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .meta-tag {
-      font-size: 0.72rem;
-      color: var(--text3);
-      background: var(--surface2);
-      padding: 2px 7px;
-      border-radius: 6px;
-    }
+    .card-title { font-size: 0.88rem; color: var(--text); margin-bottom: 6px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .card-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .meta-tag { font-size: 0.72rem; color: var(--text3); background: var(--surface2); padding: 2px 7px; border-radius: 6px; }
     .meta-tag.size { color: var(--accent2); }
-    .meta-tag.date { color: var(--text3); }
     .meta-tag.views { color: var(--warning); }
-
-    .card-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      flex-shrink: 0;
-    }
-
-    .send-btn {
-      background: var(--accent);
-      color: #0d0d1a;
-      border: none;
-      border-radius: 8px;
-      padding: 7px 12px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.15s;
-      white-space: nowrap;
-    }
+    .card-actions { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+    .send-btn { background: var(--accent); color: #0d0d1a; border: none; border-radius: 8px; padding: 7px 12px; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
     .send-btn:hover { background: #8aaeff; }
-
-    .sent-badge {
-      display: none;
-      background: var(--success);
-      color: #0d0d1a;
-      border-radius: 8px;
-      padding: 7px 12px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      text-align: center;
-    }
+    .sent-badge { display: none; background: var(--success); color: #0d0d1a; border-radius: 8px; padding: 7px 12px; font-size: 0.78rem; font-weight: 700; text-align: center; }
     .video-card.sent .send-btn { display: none; }
     .video-card.sent .sent-badge { display: block; }
 
-    /* === SKELETON === */
-    .skeleton {
-      background: linear-gradient(90deg, var(--surface) 25%, var(--surface2) 50%, var(--surface) 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-      border-radius: 14px;
-      height: 90px;
-    }
-    @keyframes shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
+    /* MESSAGES */
+    .messages-list { display: flex; flex-direction: column; gap: 10px; }
+    .msg-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px; transition: background 0.15s; }
+    .msg-card:hover { background: var(--surface2); }
+    .msg-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .msg-type-icon { font-size: 1.1rem; }
+    .msg-type-label { font-size: 0.72rem; font-weight: 700; color: var(--text3); background: var(--surface2); padding: 2px 8px; border-radius: 6px; text-transform: uppercase; }
+    .msg-views { font-size: 0.75rem; color: var(--warning); }
+    .msg-date { font-size: 0.73rem; color: var(--text3); margin-left: auto; }
+    .msg-text { font-size: 0.87rem; color: var(--text); line-height: 1.6; white-space: pre-wrap; word-break: break-word; margin-bottom: 8px; }
+    .msg-media-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+    .msg-send-btn { background: var(--accent); color: #0d0d1a; border: none; border-radius: 8px; padding: 7px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+    .msg-send-btn:hover { background: #8aaeff; }
 
-    /* === EMPTY STATE === */
-    .empty-state {
-      grid-column: 1 / -1;
-      text-align: center;
-      padding: 60px 20px;
-      color: var(--text3);
-    }
+    /* SKELETON */
+    .skeleton { background: linear-gradient(90deg, var(--surface) 25%, var(--surface2) 50%, var(--surface) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 14px; height: 90px; }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .empty-state { grid-column: 1/-1; text-align: center; padding: 60px 20px; color: var(--text3); }
     .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
-    .empty-state p { font-size: 0.95rem; }
 
-    /* === TOAST === */
-    .toast-container {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      z-index: 1000;
-    }
+    /* MODAL */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 500; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 26px; width: 92%; max-width: 420px; transform: scale(0.9); transition: transform 0.2s; }
+    .modal-overlay.open .modal { transform: scale(1); }
+    .modal h3 { font-size: 1.05rem; margin-bottom: 6px; color: var(--text); }
+    .modal-desc { font-size: 0.82rem; color: var(--text2); margin-bottom: 16px; line-height: 1.5; }
+    .modal input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; color: var(--text); font-size: 0.95rem; outline: none; margin-bottom: 16px; }
+    .modal input:focus { border-color: var(--accent); }
+    .modal-btns { display: flex; gap: 10px; }
+    .modal-btns .btn { flex: 1; justify-content: center; }
 
-    .toast {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px 18px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--text);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-      transform: translateX(120%);
-      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      max-width: 300px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    /* TOAST */
+    .toast-container { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 8px; z-index: 1000; }
+    .toast { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 18px; font-size: 0.85rem; font-weight: 600; color: var(--text); box-shadow: 0 8px 32px rgba(0,0,0,0.4); transform: translateX(120%); transition: transform 0.3s cubic-bezier(0.175,0.885,0.32,1.275); max-width: 300px; }
     .toast.show { transform: translateX(0); }
     .toast.success { border-color: var(--success); }
     .toast.error { border-color: var(--danger); }
     .toast.info { border-color: var(--accent); }
-
-    /* === NUMBER QUICK SEND === */
-    .quick-send {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 16px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .quick-send label {
-      font-size: 0.85rem;
-      color: var(--text2);
-      white-space: nowrap;
-    }
-
-    .quick-send input {
-      flex: 1;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 9px 14px;
-      color: var(--text);
-      font-size: 0.9rem;
-      outline: none;
-    }
-    .quick-send input:focus { border-color: var(--accent); }
 
     @media (max-width: 600px) {
       .header { padding: 12px 16px; }
@@ -420,370 +146,445 @@
     <div class="channel-badge">{{ channel }}</div>
   </div>
   <div class="header-right">
-    <button class="btn btn-ghost" onclick="loadPosts()">🔄 Yangilash</button>
-    <button class="btn btn-primary" id="bulkSendBtn" onclick="sendSelected()" disabled>
-      ▶ Yuborish
-    </button>
+    <button class="btn btn-ghost" onclick="reloadCurrent()">🔄</button>
+    <button class="btn btn-primary" id="bulkSendBtn" onclick="sendSelected()" disabled>▶ Yuborish</button>
   </div>
 </div>
 
-<!-- TOOLBAR -->
-<div class="toolbar">
-  <div class="search-box">
-    <input type="text" id="searchInput" placeholder="Video qidirish..." oninput="filterPosts()">
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('videos')">🎬 Videolar</div>
+  <div class="tab" onclick="switchTab('messages')">💬 Xabarlar</div>
+</div>
+
+<!-- ===== VIDEOS TAB ===== -->
+<div id="tab-videos" class="tab-content active">
+  <div class="toolbar">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Video qidirish..." oninput="filterPosts()">
+    </div>
+    <select class="filter-select" id="sortSelect" onchange="filterPosts()">
+      <option value="newest">Yangi avval</option>
+      <option value="oldest">Eski avval</option>
+      <option value="largest">Katta avval</option>
+      <option value="smallest">Kichik avval</option>
+    </select>
+    <div class="bulk-info" id="bulkInfo">
+      <span id="bulkCount">0</span> ta tanlandi
+      <button class="btn btn-ghost" style="padding:4px 10px;font-size:0.75rem" onclick="clearSelection()">✕</button>
+    </div>
   </div>
-  <select class="filter-select" id="sortSelect" onchange="filterPosts()">
-    <option value="newest">Yangi avval</option>
-    <option value="oldest">Eski avval</option>
-    <option value="largest">Katta avval</option>
-    <option value="smallest">Kichik avval</option>
-  </select>
-  <div class="bulk-info" id="bulkInfo">
-    <span id="bulkCount">0</span> ta tanlandi
-    <button class="btn btn-ghost" style="padding:4px 10px;font-size:0.75rem" onclick="clearSelection()">✕</button>
+  <div class="stats-bar">
+    <span>📹 <span id="totalCount">0</span> ta video</span>
+    <span>✅ <span id="sentCount">0</span> ta yuborildi</span>
+    <span id="loadingStatus" style="color:var(--accent)">Yuklanmoqda...</span>
+  </div>
+  <div class="content">
+    <div class="quick-send">
+      <label>⚡ Raqam bilan:</label>
+      <input type="number" id="numInput" placeholder="Masalan: 5" min="1">
+      <button class="btn btn-primary" onclick="sendByNumber()" style="white-space:nowrap">Yuborish</button>
+    </div>
+    <div class="videos-grid" id="videosGrid">
+      <div class="skeleton"></div><div class="skeleton"></div>
+      <div class="skeleton"></div><div class="skeleton"></div>
+      <div class="skeleton"></div><div class="skeleton"></div>
+    </div>
   </div>
 </div>
 
-<!-- STATS BAR -->
-<div class="stats-bar">
-  <span>📹 <span id="totalCount">0</span> ta video</span>
-  <span>✅ <span id="sentCount">0</span> ta yuborildi</span>
-  <span id="loadingStatus" style="color: var(--accent)">Yuklanmoqda...</span>
-</div>
-
-<!-- MAIN CONTENT -->
-<div class="content">
-  <!-- Quick send by number -->
-  <div class="quick-send">
-    <label>⚡ Raqam bilan:</label>
-    <input type="number" id="numInput" placeholder="Masalan: 5" min="1">
-    <button class="btn btn-primary" onclick="sendByNumber()" style="white-space:nowrap">Yuborish</button>
+<!-- ===== MESSAGES TAB ===== -->
+<div id="tab-messages" class="tab-content">
+  <div class="toolbar">
+    <div class="search-box">
+      <input type="text" id="msgSearchInput" placeholder="Xabar qidirish..." oninput="filterMessages()">
+    </div>
   </div>
-
-  <!-- Videos grid -->
-  <div class="videos-grid" id="videosGrid">
-    <div class="skeleton"></div>
-    <div class="skeleton"></div>
-    <div class="skeleton"></div>
-    <div class="skeleton"></div>
-    <div class="skeleton"></div>
-    <div class="skeleton"></div>
+  <div class="stats-bar">
+    <span>💬 <span id="msgTotalCount">0</span> ta xabar</span>
+    <span id="msgLoadingStatus" style="color:var(--accent)">Yuklanmagan</span>
+  </div>
+  <div class="content">
+    <div class="messages-list" id="messagesList">
+      <div class="empty-state"><div class="icon">💬</div><p>"Xabarlar" tabiga bosing — kanal postlari yuklanadi</p></div>
+    </div>
   </div>
 </div>
 
-<!-- TOAST CONTAINER -->
+<!-- NOM SO'RASH MODAL -->
+<div class="modal-overlay" id="nameModal">
+  <div class="modal">
+    <h3>📝 Video nomi</h3>
+    <p class="modal-desc" id="modalDesc">Google Drive da qanday nom bilan saqlansin?</p>
+    <input type="text" id="nameInput" placeholder="Masalan: Titanlar hujumi 1-qism" maxlength="100">
+    <div class="modal-btns">
+      <button class="btn btn-ghost" onclick="closeModal()">Bekor</button>
+      <button class="btn btn-primary" onclick="confirmSend()">✅ Yuborish</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
   let allPosts = [];
   let filteredPosts = [];
+  let allMessages = [];
+  let filteredMessages = [];
   let selectedIds = new Set();
   let sentIds = new Set();
   let sendingIds = new Set();
+  let currentTab = 'videos';
+  let messagesLoaded = false;
+
+  // Modal state
+  let pendingId = null;
+  let pendingLink = null;
+  let pendingIsBulk = false;
+  let pendingLinks = [];
 
   // =====================
-  // DATA LOADING
+  // TABS
+  // =====================
+  function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.tab').forEach((t, i) => {
+      t.classList.toggle('active', (i === 0 && tab === 'videos') || (i === 1 && tab === 'messages'));
+    });
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    if (tab === 'messages' && !messagesLoaded) loadMessages();
+  }
+
+  function reloadCurrent() {
+    if (currentTab === 'videos') loadPosts();
+    else { messagesLoaded = false; loadMessages(); }
+  }
+
+  // =====================
+  // VIDEOS
   // =====================
   async function loadPosts() {
     setStatus("Kanal postlari yuklanmoqda...", "accent");
     showSkeletons();
-
     try {
-      const resp = await fetch("/api/posts?limit=50");
+      const resp = await fetch("/api/posts?limit=100");
       const data = await resp.json();
-
-      if (!data.ok) {
-        setStatus(`❌ Xato: ${data.error}`, "danger");
-        showEmpty("Serverda xatolik: " + data.error);
-        return;
-      }
-
+      if (!data.ok) { setStatus("❌ " + data.error, "danger"); showEmpty("Xatolik: " + data.error); return; }
       allPosts = data.posts;
       filteredPosts = [...allPosts];
-
       document.getElementById("totalCount").textContent = allPosts.length;
-      setStatus(`✅ ${allPosts.length} ta video topildi`, "success");
-
+      setStatus("✅ " + allPosts.length + " ta video topildi", "success");
       renderPosts(filteredPosts);
-
-    } catch (e) {
+    } catch(e) {
       setStatus("❌ Server bilan bog'lanishda xato", "danger");
       showEmpty("Server ishlamayapti yoki tarmoq xatosi");
     }
   }
 
-  // =====================
-  // RENDER
-  // =====================
   function renderPosts(posts) {
     const grid = document.getElementById("videosGrid");
-
-    if (!posts.length) {
-      showEmpty("Hech narsa topilmadi");
-      return;
-    }
-
+    if (!posts.length) { showEmpty("Hech narsa topilmadi"); return; }
     grid.innerHTML = posts.map((p, i) => {
-      const isSelected = selectedIds.has(p.id);
+      const isSel = selectedIds.has(p.id);
       const isSent = sentIds.has(p.id);
       const isSending = sendingIds.has(p.id);
-
-      let cardClass = "video-card";
-      if (isSelected) cardClass += " selected";
-      if (isSent) cardClass += " sent";
-      if (isSending) cardClass += " sending";
-
-      return `
-        <div class="${cardClass}" id="card-${p.id}" onclick="toggleSelect(${p.id}, event)">
-          <div class="card-check"></div>
-          <div class="card-num">${i + 1}</div>
-          <div class="card-body">
-            <div class="card-title">${escHtml(p.title)}</div>
-            <div class="card-meta">
-              ${p.size_mb ? `<span class="meta-tag size">📦 ${p.size_mb}MB</span>` : ""}
-              ${p.date ? `<span class="meta-tag date">📅 ${p.date}</span>` : ""}
-              ${p.views ? `<span class="meta-tag views">👁 ${p.views}</span>` : ""}
-            </div>
-          </div>
-          <div class="card-actions" onclick="event.stopPropagation()">
-            <button class="send-btn" onclick="sendOne(${p.id}, '${escAttr(p.link)}')">▶ Yuborish</button>
-            <div class="sent-badge">✅ Yuborildi</div>
-          </div>
-        </div>
-      `;
+      let cls = "video-card" + (isSel?" selected":"") + (isSent?" sent":"") + (isSending?" sending":"");
+      return '<div class="' + cls + '" id="card-' + p.id + '" onclick="toggleSelect(' + p.id + ',event)">' +
+        '<div class="card-check"></div>' +
+        '<div class="card-num">' + (i+1) + '</div>' +
+        '<div class="card-body">' +
+          '<div class="card-title">' + escHtml(p.title) + '</div>' +
+          '<div class="card-meta">' +
+            (p.size_mb ? '<span class="meta-tag size">📦 ' + p.size_mb + 'MB</span>' : '') +
+            (p.date ? '<span class="meta-tag">📅 ' + p.date + '</span>' : '') +
+            (p.views ? '<span class="meta-tag views">👁 ' + p.views + '</span>' : '') +
+          '</div>' +
+        '</div>' +
+        '<div class="card-actions" onclick="event.stopPropagation()">' +
+          '<button class="send-btn" onclick="openNameModal(' + p.id + ',\'' + escAttr(p.link) + '\',\'' + escAttr(p.title) + '\')">▶ Yuborish</button>' +
+          '<div class="sent-badge">✅ Yuborildi</div>' +
+        '</div>' +
+      '</div>';
     }).join("");
   }
 
-  // =====================
-  // FILTER & SEARCH
-  // =====================
   function filterPosts() {
     const q = document.getElementById("searchInput").value.toLowerCase().trim();
     const sort = document.getElementById("sortSelect").value;
-
-    filteredPosts = allPosts.filter(p =>
-      !q || p.title.toLowerCase().includes(q)
-    );
-
-    filteredPosts.sort((a, b) => {
-      if (sort === "newest") return b.id - a.id;
-      if (sort === "oldest") return a.id - b.id;
-      if (sort === "largest") return b.size_mb - a.size_mb;
-      if (sort === "smallest") return a.size_mb - b.size_mb;
+    filteredPosts = allPosts.filter(p => !q || p.title.toLowerCase().includes(q));
+    filteredPosts.sort((a,b) => {
+      if (sort==="newest") return b.id-a.id;
+      if (sort==="oldest") return a.id-b.id;
+      if (sort==="largest") return b.size_mb-a.size_mb;
+      if (sort==="smallest") return a.size_mb-b.size_mb;
       return 0;
     });
-
     renderPosts(filteredPosts);
     document.getElementById("totalCount").textContent = filteredPosts.length;
+  }
+
+  // =====================
+  // MESSAGES
+  // =====================
+  async function loadMessages() {
+    document.getElementById("msgLoadingStatus").textContent = "Yuklanmoqda...";
+    document.getElementById("msgLoadingStatus").style.color = "var(--accent)";
+    document.getElementById("messagesList").innerHTML =
+      '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
+    try {
+      const resp = await fetch("/api/messages?limit=100");
+      const data = await resp.json();
+      if (!data.ok) {
+        document.getElementById("msgLoadingStatus").textContent = "❌ " + data.error;
+        document.getElementById("msgLoadingStatus").style.color = "var(--danger)";
+        return;
+      }
+      allMessages = data.messages;
+      filteredMessages = [...allMessages];
+      messagesLoaded = true;
+      document.getElementById("msgTotalCount").textContent = allMessages.length;
+      document.getElementById("msgLoadingStatus").textContent = "✅ " + allMessages.length + " ta xabar";
+      document.getElementById("msgLoadingStatus").style.color = "var(--success)";
+      renderMessages(filteredMessages);
+    } catch(e) {
+      document.getElementById("msgLoadingStatus").textContent = "❌ Xato";
+      document.getElementById("msgLoadingStatus").style.color = "var(--danger)";
+    }
+  }
+
+  function renderMessages(msgs) {
+    const list = document.getElementById("messagesList");
+    if (!msgs.length) {
+      list.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Xabarlar topilmadi</p></div>';
+      return;
+    }
+    const icons = { video:'🎬', photo:'🖼️', document:'📄', audio:'🎵', text:'💬', media:'📎' };
+    list.innerHTML = msgs.map(m => {
+      const icon = icons[m.type] || '💬';
+      const sendBtn = (m.type === 'video' || m.type === 'document') ?
+        '<button class="msg-send-btn" onclick="openNameModal(' + m.id + ',\'' + escAttr(m.link) + '\',\'' + escAttr(m.text||'Video') + '\')">▶ Drive ga yuklash</button>' : '';
+      return '<div class="msg-card">' +
+        '<div class="msg-header">' +
+          '<span class="msg-type-icon">' + icon + '</span>' +
+          '<span class="msg-type-label">' + m.type + '</span>' +
+          (m.views ? '<span class="msg-views">👁 ' + m.views + '</span>' : '') +
+          '<span class="msg-date">📅 ' + m.date + '</span>' +
+        '</div>' +
+        (m.text ? '<div class="msg-text">' + escHtml(m.text.substring(0,300)) + (m.text.length>300?'...':'') + '</div>' : '') +
+        (m.size_mb ? '<div class="msg-media-row"><span class="meta-tag size">📦 ' + m.size_mb + 'MB</span></div>' : '') +
+        sendBtn +
+      '</div>';
+    }).join("");
+  }
+
+  function filterMessages() {
+    const q = document.getElementById("msgSearchInput").value.toLowerCase().trim();
+    filteredMessages = allMessages.filter(m => !q || (m.text||"").toLowerCase().includes(q));
+    document.getElementById("msgTotalCount").textContent = filteredMessages.length;
+    renderMessages(filteredMessages);
+  }
+
+  // =====================
+  // MODAL
+  // =====================
+  function openNameModal(id, link, title) {
+    pendingId = id;
+    pendingLink = link;
+    pendingIsBulk = false;
+    const suggested = (title||'').replace(/[<>:"\/\\|?*]/g,'').trim().substring(0,80);
+    document.getElementById("nameInput").value = suggested;
+    document.getElementById("modalDesc").textContent = '"' + (title||'').substring(0,50) + '" — Drive da qanday nom bilan saqlansin?';
+    document.getElementById("nameModal").classList.add("open");
+    setTimeout(() => {
+      const inp = document.getElementById("nameInput");
+      inp.focus();
+      inp.select();
+    }, 150);
+  }
+
+  function openBulkModal() {
+    pendingIsBulk = true;
+    pendingLinks = [];
+    selectedIds.forEach(id => {
+      const post = allPosts.find(p => p.id === id);
+      if (post) pendingLinks.push({ link: post.link, title: post.title });
+    });
+    document.getElementById("nameInput").value = "";
+    document.getElementById("modalDesc").textContent = pendingLinks.length + ' ta video uchun umumiy prefiks kiriting (ixtiyoriy):';
+    document.getElementById("nameModal").classList.add("open");
+    setTimeout(() => document.getElementById("nameInput").focus(), 150);
+  }
+
+  function closeModal() {
+    document.getElementById("nameModal").classList.remove("open");
+    pendingLink = null; pendingId = null; pendingIsBulk = false; pendingLinks = [];
+  }
+
+  async function confirmSend() {
+    const name = document.getElementById("nameInput").value.trim();
+    closeModal();
+    if (pendingIsBulk) {
+      await sendBulkWithNames(pendingLinks, name);
+    } else {
+      await sendOne(pendingId, pendingLink, name);
+    }
   }
 
   // =====================
   // SELECTION
   // =====================
   function toggleSelect(id, event) {
-    // Agar "Yuborish" tugmasiga bosilsa — tanlamaslik
     if (event.target.classList.contains("send-btn")) return;
-
-    if (selectedIds.has(id)) {
-      selectedIds.delete(id);
-    } else {
-      selectedIds.add(id);
-    }
-
+    if (selectedIds.has(id)) selectedIds.delete(id);
+    else selectedIds.add(id);
     updateBulkUI();
     rerenderCard(id);
   }
 
   function clearSelection() {
-    selectedIds.clear();
-    updateBulkUI();
-    renderPosts(filteredPosts);
+    selectedIds.clear(); updateBulkUI(); renderPosts(filteredPosts);
   }
 
   function updateBulkUI() {
     const count = selectedIds.size;
-    const bulkInfo = document.getElementById("bulkInfo");
-    const bulkBtn = document.getElementById("bulkSendBtn");
-    const bulkCount = document.getElementById("bulkCount");
-
-    bulkCount.textContent = count;
-    bulkInfo.classList.toggle("visible", count > 0);
-    bulkBtn.disabled = count === 0;
-    bulkBtn.textContent = count > 1 ? `▶ ${count} ta Yuborish` : "▶ Yuborish";
+    document.getElementById("bulkCount").textContent = count;
+    document.getElementById("bulkInfo").classList.toggle("visible", count > 0);
+    const btn = document.getElementById("bulkSendBtn");
+    btn.disabled = count === 0;
+    btn.textContent = count > 1 ? "▶ " + count + " ta Yuborish" : "▶ Yuborish";
   }
 
   function rerenderCard(id) {
-    const card = document.getElementById(`card-${id}`);
+    const card = document.getElementById("card-" + id);
     if (!card) return;
-    const isSelected = selectedIds.has(id);
-    card.classList.toggle("selected", isSelected);
-    const check = card.querySelector(".card-check");
-    if (check) check.style.background = isSelected ? "var(--accent)" : "";
+    card.classList.toggle("selected", selectedIds.has(id));
+  }
+
+  function sendSelected() {
+    if (selectedIds.size === 0) return;
+    if (selectedIds.size === 1) {
+      const id = [...selectedIds][0];
+      const post = allPosts.find(p => p.id === id);
+      if (post) openNameModal(id, post.link, post.title);
+    } else {
+      openBulkModal();
+    }
   }
 
   // =====================
-  // SEND FUNCTIONS
+  // SEND
   // =====================
-  async function sendOne(id, link) {
+  async function sendOne(id, link, name) {
     if (sendingIds.has(id)) return;
-
-    const post = allPosts.find(p => p.id === id);
-    const name = post ? post.title.substring(0, 25) : `#${id}`;
-
     sendingIds.add(id);
-    const card = document.getElementById(`card-${id}`);
+    const card = document.getElementById("card-" + id);
     if (card) card.classList.add("sending");
-
     try {
       const resp = await fetch("/api/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ link })
+        body: JSON.stringify({ link, name })
       });
       const data = await resp.json();
-
       sendingIds.delete(id);
-
       if (data.ok) {
         sentIds.add(id);
-        const count = parseInt(document.getElementById("sentCount").textContent) + 1;
-        document.getElementById("sentCount").textContent = count;
-
-        if (card) {
-          card.classList.remove("sending");
-          card.classList.add("sent");
-        }
-        showToast(`✅ "${name}..." yuborildi!`, "success");
+        const cnt = parseInt(document.getElementById("sentCount").textContent) + 1;
+        document.getElementById("sentCount").textContent = cnt;
+        if (card) { card.classList.remove("sending"); card.classList.add("sent"); }
+        showToast('✅ "' + (name||'Video') + '" yuborildi!', "success");
       } else {
         if (card) card.classList.remove("sending");
-        showToast(`❌ Xato: ${data.error}`, "error");
+        showToast("❌ " + data.error, "error");
       }
-    } catch (e) {
+    } catch(e) {
       sendingIds.delete(id);
       if (card) card.classList.remove("sending");
       showToast("❌ Server xatosi", "error");
     }
   }
 
-  async function sendSelected() {
-    if (selectedIds.size === 0) return;
-
-    const links = [];
-    selectedIds.forEach(id => {
-      const post = allPosts.find(p => p.id === id);
-      if (post) links.push(post.link);
-    });
-
-    showToast(`⏳ ${links.length} ta video navbatga qo'shilmoqda...`, "info");
-
+  async function sendBulkWithNames(items, prefix) {
+    showToast("⏳ " + items.length + " ta video yuborilmoqda...", "info");
+    const links = items.map((item, i) => item.link);
     try {
       const resp = await fetch("/api/send_bulk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ links })
+        body: JSON.stringify({ links, prefix })
       });
       const data = await resp.json();
-
       if (data.ok) {
         const success = data.results.filter(r => r.ok).length;
         const failed = data.results.filter(r => !r.ok).length;
-
-        // Muvaffaqiyatlilarni sent qilib belgilash
-        data.results.forEach((r, i) => {
+        data.results.forEach(r => {
           if (r.ok) {
             const post = allPosts.find(p => p.link === r.link);
             if (post) {
               sentIds.add(post.id);
-              const card = document.getElementById(`card-${post.id}`);
-              if (card) {
-                card.classList.remove("selected", "sending");
-                card.classList.add("sent");
-              }
+              const c = document.getElementById("card-" + post.id);
+              if (c) { c.classList.remove("selected","sending"); c.classList.add("sent"); }
             }
           }
         });
-
-        const count = parseInt(document.getElementById("sentCount").textContent) + success;
-        document.getElementById("sentCount").textContent = count;
-
+        const cnt = parseInt(document.getElementById("sentCount").textContent) + success;
+        document.getElementById("sentCount").textContent = cnt;
         clearSelection();
-        showToast(`✅ ${success} ta yuborildi${failed ? `, ${failed} ta xato` : ""}!`, "success");
+        showToast("✅ " + success + " ta yuborildi" + (failed ? ", " + failed + " ta xato" : "") + "!", "success");
       }
-    } catch (e) {
-      showToast("❌ Tarmoq xatosi", "error");
-    }
+    } catch(e) { showToast("❌ Tarmoq xatosi", "error"); }
   }
 
   async function sendByNumber() {
     const num = parseInt(document.getElementById("numInput").value);
-    if (!num || num < 1) {
-      showToast("⚠️ Raqam kiriting!", "error");
-      return;
-    }
-    if (num > filteredPosts.length) {
-      showToast(`⚠️ Faqat ${filteredPosts.length} ta video bor`, "error");
-      return;
-    }
+    if (!num || num < 1) { showToast("⚠️ Raqam kiriting!", "error"); return; }
+    if (num > filteredPosts.length) { showToast("⚠️ Faqat " + filteredPosts.length + " ta video bor", "error"); return; }
     const post = filteredPosts[num - 1];
     document.getElementById("numInput").value = "";
-    await sendOne(post.id, post.link);
+    openNameModal(post.id, post.link, post.title);
   }
 
   // =====================
   // UI HELPERS
   // =====================
   function showSkeletons() {
-    const grid = document.getElementById("videosGrid");
-    grid.innerHTML = Array(6).fill('<div class="skeleton"></div>').join("");
+    document.getElementById("videosGrid").innerHTML = Array(6).fill('<div class="skeleton"></div>').join("");
   }
-
   function showEmpty(msg) {
-    document.getElementById("videosGrid").innerHTML = `
-      <div class="empty-state">
-        <div class="icon">📭</div>
-        <p>${msg}</p>
-      </div>`;
+    document.getElementById("videosGrid").innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>' + msg + '</p></div>';
   }
-
-  function setStatus(msg, type = "text2") {
+  function setStatus(msg, type) {
     const el = document.getElementById("loadingStatus");
     el.textContent = msg;
-    el.style.color = `var(--${type})`;
+    el.style.color = "var(--" + (type||"text2") + ")";
   }
-
-  function showToast(msg, type = "info") {
-    const container = document.getElementById("toastContainer");
-    const toast = document.createElement("div");
-    toast.className = `toast ${type}`;
-    toast.textContent = msg;
-    container.appendChild(toast);
-    setTimeout(() => toast.classList.add("show"), 10);
-    setTimeout(() => {
-      toast.classList.remove("show");
-      setTimeout(() => toast.remove(), 300);
-    }, 3500);
+  function showToast(msg, type) {
+    const c = document.getElementById("toastContainer");
+    const t = document.createElement("div");
+    t.className = "toast " + (type||"info");
+    t.textContent = msg;
+    c.appendChild(t);
+    setTimeout(() => t.classList.add("show"), 10);
+    setTimeout(() => { t.classList.remove("show"); setTimeout(() => t.remove(), 300); }, 3500);
   }
-
   function escHtml(str) {
-    return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    return (str||'').replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
   }
-  function escAttr(str) {
-    return str.replace(/'/g, "\\'");
-  }
+  function escAttr(str) { return (str||'').replace(/'/g,"\\'").replace(/\n/g,' '); }
 
-  // =====================
-  // KEYBOARD SHORTCUTS
-  // =====================
+  // KEYBOARD
   document.addEventListener("keydown", e => {
-    if (e.key === "Enter" && document.activeElement.id === "numInput") {
-      sendByNumber();
-    }
+    if (e.key === "Enter" && document.activeElement.id === "numInput") sendByNumber();
+    if (e.key === "Enter" && document.activeElement.id === "nameInput") confirmSend();
+    if (e.key === "Escape") closeModal();
+  });
+  document.getElementById("nameModal").addEventListener("click", e => {
+    if (e.target === document.getElementById("nameModal")) closeModal();
   });
 
-  // =====================
-  // INIT
-  // =====================
   loadPosts();
 </script>
 </body>
-  </html>
+</html>
