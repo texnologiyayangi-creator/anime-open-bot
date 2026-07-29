@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: video-panel
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --worker-class=gthread --threads=4 --timeout=120
+    envVars:
+      - key: API_ID
+        sync: false
+      - key: API_HASH
+        sync: false
+      - key: SESSION_STRING
+        sync: false
+      - key: TELEGRAM_TOKEN
+        sync: false
+      - key: BOT_USERNAME
+        sync: false
+      - key: BOT_CHAT_ID
+        sync: false
+      - key: CHANNEL_USERNAME
+        sync: false
