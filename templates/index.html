@@ -97,6 +97,8 @@
     .msg-media-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
     .msg-send-btn { background: var(--accent); color: #0d0d1a; border: none; border-radius: 8px; padding: 7px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.15s; }
     .msg-send-btn:hover { background: #8aaeff; }
+    .tg-link { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(108,143,255,0.4); transition: border-color 0.15s; }
+    .tg-link:hover { border-bottom-color: var(--accent); color: #8aaeff; }
 
     .skeleton { background: linear-gradient(90deg, var(--surface) 25%, var(--surface2) 50%, var(--surface) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 14px; height: 90px; }
     @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
@@ -409,7 +411,7 @@
           (m.views?'<span class="msg-views">👁 '+m.views+'</span>':'')+
           '<span class="msg-date">📅 '+m.date+'</span>'+
         '</div>'+
-        (m.text?'<div class="msg-text">'+escHtml(m.text)+'</div>':'')+
+        (m.text?'<div class="msg-text">'+m.text+'</div>':'')+
         (m.size_mb?'<div class="msg-media-row"><span class="meta-tag size">📦 '+m.size_mb+'MB</span></div>':'')+
         sendBtn+
       '</div>';
@@ -553,4 +555,4 @@
   loadPosts();
 </script>
 </body>
-  </html>
+</html>
