@@ -197,11 +197,13 @@ async def fetch_all_messages(offset_id=0, limit=50):
         plain_text = re.sub(r'[*_`]', '', raw_text).strip() if raw_text else ""
         date_str = msg.date.strftime("%d.%m.%Y %H:%M") if msg.date else ""
 
+        msg_link = f"https://t.me/{channel}/{msg.id}"
         messages.append({
             "id": msg.id, "type": msg_type,
             "text": html_text,
-            "plain": plain_text,  # qidiruv uchun
-            "link": link, "size_mb": round(size_mb, 1) if size_mb else 0,
+            "plain": plain_text,
+            "link": msg_link,
+            "size_mb": round(size_mb, 1) if size_mb else 0,
             "date": date_str, "views": msg.views or 0,
         })
         count += 1
