@@ -64,35 +64,37 @@ def clean_title(text, fallback):
     return cleaned if cleaned else fallback
 
 def parse_entities(text, entities):
-    """Telegram entities dan havola va formatlashni HTML ga aylantiradi"""
-    if not text or not entities:
-        return escape_html(text or "")
+    if not text:
+        return ""
 
-    # Har bir belgi uchun teglar
     chars = list(text)
-    opens = {i: [] for i in range(len(chars))}
-    closes = {i: [] for i in range(len(chars))}
+    opens = {}
+    closes = {}
+    for i in range(len(chars) + 1):
+        opens[i] = []
+        closes[i] = []
 
-    for ent in entities:
+    for ent in (entities or []):
         s = ent.offset
-        e = ent.offset + ent.length
+        e = min(ent.offset + ent.length, len(chars))
 
         if isinstance(ent, MessageEntityTextUrl):
-            opens[s].append(f'<a href="{ent.url}" target="_blank" class="tg-link">')
-            closes[e-1].append('</a>')
+            url = ent.url
+            opens[s].append(f'<a href="{url}" data-url="{url}" class="tg-link" onclick="openTgLink(event,this)">')
+            closes[e].append('</a>')
         elif isinstance(ent, MessageEntityUrl):
             url = text[s:e]
-            opens[s].append(f'<a href="{url}" target="_blank" class="tg-link">')
-            closes[e-1].append('</a>')
+            opens[s].append(f'<a href="{url}" data-url="{url}" class="tg-link" onclick="openTgLink(event,this)">')
+            closes[e].append('</a>')
         elif isinstance(ent, MessageEntityBold):
             opens[s].append('<b>')
-            closes[e-1].append('</b>')
+            closes[e].append('</b>')
         elif isinstance(ent, MessageEntityItalic):
             opens[s].append('<i>')
-            closes[e-1].append('</i>')
+            closes[e].append('</i>')
         elif isinstance(ent, MessageEntityCode):
             opens[s].append('<code>')
-            closes[e-1].append('</code>')
+            closes[e].append('</code>')
 
     result = []
     for i, ch in enumerate(chars):
@@ -107,14 +109,19 @@ def parse_entities(text, entities):
             result.append('<br>')
         else:
             result.append(ch)
-        # closes teskari tartibda
-        for tag in reversed(closes.get(i, [])):
-            result.append(tag)
+        result.extend(closes.get(i + 1, []))
 
-    return ''.join(result)
+    result.extend(closes.get(len(chars), []))
+    html = ''.join(result)
 
-def escape_html(text):
-    return text.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;').replace('\n','<br>')
+    # Markdown [nom](url) formatini ham aniqlash
+    def replace_md_link(m):
+        name = m.group(1)
+        url = m.group(2)
+        return f'<a href="{url}" data-url="{url}" class="tg-link" onclick="openTgLink(event,this)">{name}</a>'
+
+    html = re.sub(r'\[([^\]<>]+)\]\((https?://[^\)]+)\)', replace_md_link, html)
+    return html
 
 async def fetch_channel_posts(offset_id=0, limit=50):
     await ensure_connected()
@@ -139,13 +146,11 @@ async def fetch_channel_posts(offset_id=0, limit=50):
                 is_video = True
         if not is_video:
             continue
-
         link = f"https://t.me/{channel}/{msg.id}"
         fallback = file_name or f"Video #{msg.id}"
         title = clean_title(msg.text, fallback)
         if len(title) > 80:
             title = title[:80].strip()
-
         date_str = msg.date.strftime("%d.%m.%Y %H:%M") if msg.date else ""
         posts.append({
             "id": msg.id, "title": title, "link": link,
@@ -187,15 +192,15 @@ async def fetch_all_messages(offset_id=0, limit=50):
 
         link = f"https://t.me/{channel}/{msg.id}"
         raw_text = msg.text or file_name or ""
-
-        # Entities bilan HTML formatga o'tkazish
         html_text = parse_entities(raw_text, msg.entities or [])
-
+        # plain text - qidiruv uchun
+        plain_text = re.sub(r'[*_`]', '', raw_text).strip() if raw_text else ""
         date_str = msg.date.strftime("%d.%m.%Y %H:%M") if msg.date else ""
 
         messages.append({
             "id": msg.id, "type": msg_type,
-            "text": html_text,  # HTML formatda
+            "text": html_text,
+            "plain": plain_text,  # qidiruv uchun
             "link": link, "size_mb": round(size_mb, 1) if size_mb else 0,
             "date": date_str, "views": msg.views or 0,
         })
@@ -245,9 +250,10 @@ def api_messages():
 @app.route("/api/send", methods=["POST"])
 def api_send():
     data = request.json or {}
-    link = data.get("link", "").strip()
-    name = data.get("name", "").strip()
+    link = (data.get("link") or "").strip()
+    name = (data.get("name") or "").strip()
     if not link:
+        logging.error(f"api_send: link yo'q, data={data}")
         return jsonify({"ok": False, "error": "Havola yo'q"}), 400
     try:
         run_async(send_to_bot(link, name))
@@ -259,8 +265,8 @@ def api_send():
 @app.route("/api/send_bulk", methods=["POST"])
 def api_send_bulk():
     data = request.json or {}
-    links = data.get("links", [])
-    prefix = data.get("prefix", "").strip()
+    links = data.get("links") or []
+    prefix = (data.get("prefix") or "").strip()
     if not links:
         return jsonify({"ok": False, "error": "Havolalar yo'q"}), 400
     results = []
