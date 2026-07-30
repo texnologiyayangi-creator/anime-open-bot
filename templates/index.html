@@ -524,20 +524,37 @@
   }
 
 
-  // === SEND BTN HANDLER ===
+  // === SEND BTN HANDLER (videolar uchun) ===
   function onSendBtn(btn) {
     const id = parseInt(btn.dataset.id);
-    const link = btn.dataset.link;
-    const title = btn.dataset.title;
-    openNameModal(id, link, title);
+    // data-link HTML entity muammosini hal qilish uchun allPosts dan olamiz
+    const post = allPosts.find(p => p.id === id);
+    const link = post ? post.link : btn.getAttribute('data-link');
+    const title = post ? post.title : (btn.getAttribute('data-title') || 'Video #'+id);
+    pendingId = id;
+    pendingLink = link;
+    pendingIsBulk = false;
+    const suggested = title.replace(/[<>:"\/\\|?*]/g,'').trim().substring(0,80);
+    document.getElementById("nameInput").value = suggested;
+    document.getElementById("modalDesc").textContent = '"'+ title.substring(0,50) +'" — Drive da qanday nom?';
+    document.getElementById("nameModal").classList.add("open");
+    setTimeout(()=>{const i=document.getElementById("nameInput");i.focus();i.select();},150);
   }
 
   // Xabarlar bo'limidan yuborish
   function sendMsg(id) {
+    // allMessages dan to'g'ridan-to'g'ri qidiramiz
     const msg = allMessages.find(m => m.id === id);
-    const link = linkMap[id] || (msg ? msg.link : null);
-    if (!link) { showToast("❌ Havola topilmadi", "error"); return; }
-    const plain = msg ? (msg.plain || 'Video #'+id) : 'Video #'+id;
+    if (!msg) {
+      showToast("❌ Xabar topilmadi", "error");
+      return;
+    }
+    const link = msg.link;
+    if (!link) {
+      showToast("❌ Havola topilmadi (link: " + link + ")", "error");
+      return;
+    }
+    const plain = msg.plain || 'Video #'+id;
     pendingId = id;
     pendingLink = link;
     pendingIsBulk = false;
