@@ -255,6 +255,7 @@
   let currentTab = 'videos';
   let pendingId = null, pendingLink = null, pendingIsBulk = false, pendingLinks = [];
   let popupPostId = null, popupPostLink = null;
+  let linkMap = {}; // msg id -> link
 
   // === TABS ===
   function switchTab(tab) {
@@ -371,10 +372,11 @@
     const list=document.getElementById("messagesList");
     if(!msgs.length){list.innerHTML='<div class="empty-state"><div class="icon">📭</div><p>Xabarlar topilmadi</p></div>';return;}
     const icons={video:'🎬',photo:'🖼️',document:'📄',audio:'🎵',text:'💬',media:'📎'};
+    msgs.forEach(m => { if(m.link) linkMap[m.id] = m.link; });
     list.innerHTML=msgs.map(m=>{
       const icon=icons[m.type]||'💬';
       const canSend=m.type==='video'||m.type==='document';
-      const sendBtn=canSend?'<button class="msg-send-btn" data-id="'+m.id+'" data-link="'+escHtml(m.link)+'" data-title="'+escHtml(m.plain||'')+'" onclick="onSendBtn(this)">▶ Drive ga yuklash</button>':'';
+      const sendBtn=canSend?'<button class="msg-send-btn" onclick="sendMsg('+m.id+')">▶ Drive ga yuklash</button>':'';
       // Matnni formatlash: [nom](url) ni havola qilamiz
       const htmlText = formatMsgText(m.text||'');
       return '<div class="msg-card">'+
@@ -528,6 +530,22 @@
     const link = btn.dataset.link;
     const title = btn.dataset.title;
     openNameModal(id, link, title);
+  }
+
+  // Xabarlar bo'limidan yuborish
+  function sendMsg(id) {
+    const msg = allMessages.find(m => m.id === id);
+    const link = linkMap[id] || (msg ? msg.link : null);
+    if (!link) { showToast("❌ Havola topilmadi", "error"); return; }
+    const plain = msg ? (msg.plain || 'Video #'+id) : 'Video #'+id;
+    pendingId = id;
+    pendingLink = link;
+    pendingIsBulk = false;
+    const suggested = plain.replace(/[<>:"\/\\|?*]/g,'').trim().substring(0,80);
+    document.getElementById("nameInput").value = suggested;
+    document.getElementById("modalDesc").textContent = '"'+ plain.substring(0,50) +'" — Drive da qanday nom?';
+    document.getElementById("nameModal").classList.add("open");
+    setTimeout(()=>{const i=document.getElementById("nameInput");i.focus();i.select();},150);
   }
 
   // === SELECTION ===
