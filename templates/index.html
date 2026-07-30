@@ -317,7 +317,7 @@
           '</div>'+
         '</div>'+
         '<div class="card-actions" onclick="event.stopPropagation()">'+
-          '<button class="send-btn" onclick="openNameModal('+p.id+',\''+escAttr(p.link)+'\',\''+escAttr(p.title)+'\')">▶ Yuborish</button>'+
+          '<button class="send-btn" data-id="'+p.id+'" data-link="'+escHtml(p.link)+'" data-title="'+escHtml(p.title)+'" onclick="onSendBtn(this)">▶ Yuborish</button>'+
           '<div class="sent-badge">✅ Yuborildi</div>'+
         '</div>'+
       '</div>';
@@ -374,7 +374,7 @@
     list.innerHTML=msgs.map(m=>{
       const icon=icons[m.type]||'💬';
       const canSend=m.type==='video'||m.type==='document';
-      const sendBtn=canSend?'<button class="msg-send-btn" onclick="openNameModal('+m.id+',\''+escAttr(m.link)+'\',\''+escAttr(m.plain||'')+'\')">▶ Drive ga yuklash</button>':'';
+      const sendBtn=canSend?'<button class="msg-send-btn" data-id="'+m.id+'" data-link="'+escHtml(m.link)+'" data-title="'+escHtml(m.plain||'')+'" onclick="onSendBtn(this)">▶ Drive ga yuklash</button>':'';
       // Matnni formatlash: [nom](url) ni havola qilamiz
       const htmlText = formatMsgText(m.text||'');
       return '<div class="msg-card">'+
@@ -519,6 +519,15 @@
     closeModal();
     if(pendingIsBulk) await sendBulkWithNames(pendingLinks,name);
     else await sendOne(pendingId,pendingLink,name);
+  }
+
+
+  // === SEND BTN HANDLER ===
+  function onSendBtn(btn) {
+    const id = parseInt(btn.dataset.id);
+    const link = btn.dataset.link;
+    const title = btn.dataset.title;
+    openNameModal(id, link, title);
   }
 
   // === SELECTION ===
