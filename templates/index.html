@@ -54,7 +54,6 @@
     .quick-send input:focus { border-color: var(--accent); }
 
     .videos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
-
     .video-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 14px; display: flex; gap: 12px; align-items: flex-start; cursor: pointer; transition: all 0.15s; user-select: none; }
     .video-card:hover { border-color: var(--accent); background: var(--surface2); transform: translateY(-1px); }
     .video-card.selected { border-color: var(--accent); background: rgba(108,143,255,0.08); }
@@ -78,7 +77,6 @@
     .video-card.sent .send-btn { display: none; }
     .video-card.sent .sent-badge { display: block; }
 
-    /* LOAD MORE */
     .load-more-wrap { text-align: center; margin-top: 20px; padding-bottom: 20px; }
     .load-more-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--accent); border-radius: 12px; padding: 12px 30px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
     .load-more-btn:hover { background: var(--border); }
@@ -86,19 +84,32 @@
 
     /* MESSAGES */
     .messages-list { display: flex; flex-direction: column; gap: 10px; }
-    .msg-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; transition: background 0.15s; }
+    .msg-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
     .msg-card:hover { background: var(--surface2); }
     .msg-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
     .msg-type-icon { font-size: 1.1rem; }
     .msg-type-label { font-size: 0.72rem; font-weight: 700; color: var(--text3); background: var(--surface2); padding: 2px 8px; border-radius: 6px; text-transform: uppercase; }
     .msg-views { font-size: 0.75rem; color: var(--warning); }
     .msg-date { font-size: 0.73rem; color: var(--text3); margin-left: auto; }
-    .msg-text { font-size: 0.88rem; color: var(--text); line-height: 1.65; white-space: pre-wrap; word-break: break-word; margin-bottom: 10px; }
+    .msg-text { font-size: 0.88rem; color: var(--text); line-height: 1.7; word-break: break-word; margin-bottom: 10px; }
+    .msg-text b { color: #fff; }
+    .msg-text i { color: var(--text2); }
     .msg-media-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
     .msg-send-btn { background: var(--accent); color: #0d0d1a; border: none; border-radius: 8px; padding: 7px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.15s; }
     .msg-send-btn:hover { background: #8aaeff; }
-    .tg-link { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(108,143,255,0.4); transition: border-color 0.15s; }
-    .tg-link:hover { border-bottom-color: var(--accent); color: #8aaeff; }
+
+    /* HAVOLALAR */
+    .tg-link { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(108,143,255,0.35); cursor: pointer; }
+    .tg-link:hover { color: #8aaeff; border-bottom-color: #8aaeff; }
+
+    /* VIDEO POPUP */
+    .video-popup { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 600; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .video-popup.open { opacity: 1; pointer-events: all; }
+    .video-popup-inner { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; width: 92%; max-width: 500px; }
+    .video-popup-title { font-size: 1rem; font-weight: 700; margin-bottom: 16px; color: var(--text); }
+    .video-popup-info { font-size: 0.85rem; color: var(--text2); margin-bottom: 16px; line-height: 1.5; }
+    .video-popup-btns { display: flex; gap: 10px; }
+    .video-popup-btns .btn { flex: 1; justify-content: center; }
 
     .skeleton { background: linear-gradient(90deg, var(--surface) 25%, var(--surface2) 50%, var(--surface) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 14px; height: 90px; }
     @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
@@ -128,7 +139,6 @@
       .toolbar { padding: 12px 16px; }
       .content { padding: 14px 16px; }
       .videos-grid { grid-template-columns: 1fr; }
-      .logo { font-size: 1.1rem; }
     }
   </style>
 </head>
@@ -168,7 +178,7 @@
     </div>
   </div>
   <div class="stats-bar">
-    <span>🎬 Jami: <b id="totalCount">0</b> ta</span>
+    <span>🎬 Jami: <b id="totalCount">0</b></span>
     <span>✅ <span id="sentCount">0</span> ta yuborildi</span>
     <span id="loadingStatus" style="color:var(--accent)">Yuklanmoqda...</span>
   </div>
@@ -192,11 +202,12 @@
 <div id="tab-messages" class="tab-content">
   <div class="toolbar">
     <div class="search-box">
-      <input type="text" id="msgSearchInput" placeholder="Xabar qidirish..." oninput="filterMessages()">
+      <input type="text" id="msgSearchInput" placeholder="Video nomi, kino nomi..." oninput="filterMessages()">
     </div>
   </div>
   <div class="stats-bar">
-    <span>💬 Jami: <b id="msgTotalCount">0</b> ta</span>
+    <span>💬 Jami: <b id="msgTotalCount">0</b></span>
+    <span id="msgSearchCount" style="display:none">🔍 <b id="msgFoundCount">0</b> ta topildi</span>
     <span id="msgLoadingStatus" style="color:var(--accent)">Yuklanmagan</span>
   </div>
   <div class="content">
@@ -209,7 +220,7 @@
   </div>
 </div>
 
-<!-- MODAL -->
+<!-- NOM MODAL -->
 <div class="modal-overlay" id="nameModal">
   <div class="modal">
     <h3>📝 Video nomi</h3>
@@ -222,47 +233,40 @@
   </div>
 </div>
 
+<!-- VIDEO POPUP (havola bosilganda) -->
+<div class="video-popup" id="videoPopup">
+  <div class="video-popup-inner">
+    <div class="video-popup-title" id="popupTitle">Video topildi!</div>
+    <div class="video-popup-info" id="popupInfo"></div>
+    <div class="video-popup-btns">
+      <button class="btn btn-ghost" onclick="closeVideoPopup()">Yopish</button>
+      <button class="btn btn-primary" id="popupSendBtn" onclick="sendFromPopup()">▶ Yuklash</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
   const PAGE_SIZE = 50;
-
-  let allPosts = [];
-  let filteredPosts = [];
-  let postsNextOffset = 0;
-  let postsHasMore = false;
-  let postsLoading = false;
-
-  let allMessages = [];
-  let filteredMessages = [];
-  let msgsNextOffset = 0;
-  let msgsHasMore = false;
-  let msgsLoaded = false;
-  let msgsLoading = false;
-
-  let selectedIds = new Set();
-  let sentIds = new Set();
-  let sendingIds = new Set();
+  let allPosts = [], filteredPosts = [], postsNextOffset = 0, postsHasMore = false, postsLoading = false;
+  let allMessages = [], filteredMessages = [], msgsNextOffset = 0, msgsHasMore = false, msgsLoaded = false, msgsLoading = false;
+  let selectedIds = new Set(), sentIds = new Set(), sendingIds = new Set();
   let currentTab = 'videos';
-
-  let pendingId = null;
-  let pendingLink = null;
-  let pendingIsBulk = false;
-  let pendingLinks = [];
+  let pendingId = null, pendingLink = null, pendingIsBulk = false, pendingLinks = [];
+  let popupPostId = null, popupPostLink = null;
 
   // === TABS ===
   function switchTab(tab) {
     currentTab = tab;
-    document.querySelectorAll('.tab').forEach((t, i) => {
-      t.classList.toggle('active', (i===0&&tab==='videos')||(i===1&&tab==='messages'));
-    });
+    document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active',(i===0&&tab==='videos')||(i===1&&tab==='messages')));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     document.getElementById('tab-'+tab).classList.add('active');
-    if (tab === 'messages' && !msgsLoaded) loadMessages();
+    if (tab==='messages' && !msgsLoaded) loadMessages();
   }
 
   function reloadCurrent() {
-    if (currentTab === 'videos') { allPosts=[]; filteredPosts=[]; postsNextOffset=0; loadPosts(); }
+    if (currentTab==='videos') { allPosts=[]; filteredPosts=[]; postsNextOffset=0; loadPosts(); }
     else { allMessages=[]; filteredMessages=[]; msgsNextOffset=0; msgsLoaded=false; loadMessages(); }
   }
 
@@ -270,49 +274,37 @@
   async function loadPosts() {
     if (postsLoading) return;
     postsLoading = true;
-    if (allPosts.length === 0) { setStatus("Yuklanmoqda...", "accent"); showSkeletons(); }
+    if (allPosts.length===0) { setStatus("Yuklanmoqda...","accent"); showSkeletons(); }
     try {
-      const resp = await fetch("/api/posts?limit=" + PAGE_SIZE + "&offset_id=" + postsNextOffset);
+      const resp = await fetch("/api/posts?limit="+PAGE_SIZE+"&offset_id="+postsNextOffset);
       const data = await resp.json();
-      if (!data.ok) { setStatus("❌ " + data.error, "danger"); showEmpty(data.error); postsLoading=false; return; }
-
+      if (!data.ok) { setStatus("❌ "+data.error,"danger"); showEmpty(data.error); postsLoading=false; return; }
       allPosts = allPosts.concat(data.posts);
       filteredPosts = [...allPosts];
       postsHasMore = data.has_more;
-      postsNextOffset = data.next_offset || 0;
-
-      document.getElementById("totalCount").textContent = allPosts.length + (postsHasMore ? "+" : "");
-      setStatus("✅ " + allPosts.length + " ta video" + (postsHasMore?" (yana bor)":""), "success");
-
+      postsNextOffset = data.next_offset||0;
+      document.getElementById("totalCount").textContent = allPosts.length+(postsHasMore?"+":"");
+      setStatus("✅ "+allPosts.length+" ta video"+(postsHasMore?" (yana bor)":""), "success");
       renderPosts(filteredPosts);
-
       const lm = document.getElementById("videoLoadMore");
       const lmBtn = document.getElementById("videoLoadMoreBtn");
-      lm.style.display = postsHasMore ? "block" : "none";
-      lmBtn.disabled = false;
-      lmBtn.textContent = "⬇️ Yana yuklash";
-    } catch(e) {
-      setStatus("❌ Server xatosi", "danger");
-      if (allPosts.length === 0) showEmpty("Server bilan bog'lanishda xato");
-    }
-    postsLoading = false;
+      lm.style.display = postsHasMore?"block":"none";
+      lmBtn.disabled=false; lmBtn.textContent="⬇️ Yana yuklash";
+    } catch(e) { setStatus("❌ Xato","danger"); if(allPosts.length===0) showEmpty("Server xatosi"); }
+    postsLoading=false;
   }
 
   async function loadMorePosts() {
-    const btn = document.getElementById("videoLoadMoreBtn");
-    btn.disabled = true;
-    btn.textContent = "⏳ Yuklanmoqda...";
+    const btn=document.getElementById("videoLoadMoreBtn");
+    btn.disabled=true; btn.textContent="⏳ Yuklanmoqda...";
     await loadPosts();
   }
 
   function renderPosts(posts) {
-    const grid = document.getElementById("videosGrid");
+    const grid=document.getElementById("videosGrid");
     if (!posts.length) { showEmpty("Hech narsa topilmadi"); return; }
-    grid.innerHTML = posts.map((p, i) => {
-      const isSel = selectedIds.has(p.id);
-      const isSent = sentIds.has(p.id);
-      const isSending = sendingIds.has(p.id);
-      let cls = "video-card"+(isSel?" selected":"")+(isSent?" sent":"")+(isSending?" sending":"");
+    grid.innerHTML = posts.map((p,i) => {
+      let cls="video-card"+(selectedIds.has(p.id)?" selected":"")+(sentIds.has(p.id)?" sent":"")+(sendingIds.has(p.id)?" sending":"");
       return '<div class="'+cls+'" id="card-'+p.id+'" onclick="toggleSelect('+p.id+',event)">'+
         '<div class="card-check"></div>'+
         '<div class="card-num">'+(i+1)+'</div>'+
@@ -333,77 +325,58 @@
   }
 
   function filterPosts() {
-    const q = document.getElementById("searchInput").value.toLowerCase().trim();
-    const sort = document.getElementById("sortSelect").value;
-    filteredPosts = allPosts.filter(p => !q || p.title.toLowerCase().includes(q));
-    if (sort === "oldest") filteredPosts.sort((a,b) => a.id-b.id);
-    else if (sort === "largest") filteredPosts.sort((a,b) => b.size_mb-a.size_mb);
-    else if (sort === "smallest") filteredPosts.sort((a,b) => a.size_mb-b.size_mb);
+    const q=document.getElementById("searchInput").value.toLowerCase().trim();
+    const sort=document.getElementById("sortSelect").value;
+    filteredPosts=allPosts.filter(p=>!q||p.title.toLowerCase().includes(q));
+    if(sort==="oldest") filteredPosts.sort((a,b)=>a.id-b.id);
+    else if(sort==="largest") filteredPosts.sort((a,b)=>b.size_mb-a.size_mb);
+    else if(sort==="smallest") filteredPosts.sort((a,b)=>a.size_mb-b.size_mb);
     renderPosts(filteredPosts);
-    document.getElementById("totalCount").textContent = filteredPosts.length + (postsHasMore&&!q?"+":" ta");
+    document.getElementById("totalCount").textContent=filteredPosts.length+(postsHasMore&&!q?"+":"");
   }
 
   // === MESSAGES ===
   async function loadMessages() {
     if (msgsLoading) return;
-    msgsLoading = true;
-    document.getElementById("msgLoadingStatus").textContent = "Yuklanmoqda...";
-    document.getElementById("msgLoadingStatus").style.color = "var(--accent)";
-    if (allMessages.length === 0) {
-      document.getElementById("messagesList").innerHTML =
-        '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
-    }
+    msgsLoading=true;
+    document.getElementById("msgLoadingStatus").textContent="Yuklanmoqda...";
+    document.getElementById("msgLoadingStatus").style.color="var(--accent)";
+    if(allMessages.length===0) document.getElementById("messagesList").innerHTML='<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
     try {
-      const resp = await fetch("/api/messages?limit=" + PAGE_SIZE + "&offset_id=" + msgsNextOffset);
-      const data = await resp.json();
-      if (!data.ok) {
-        document.getElementById("msgLoadingStatus").textContent = "❌ " + data.error;
-        document.getElementById("msgLoadingStatus").style.color = "var(--danger)";
-        msgsLoading=false; return;
-      }
-      allMessages = allMessages.concat(data.messages);
-      filteredMessages = [...allMessages];
-      msgsHasMore = data.has_more;
-      msgsNextOffset = data.next_offset || 0;
-      msgsLoaded = true;
-
-      document.getElementById("msgTotalCount").textContent = allMessages.length + (msgsHasMore?"+":"");
-      document.getElementById("msgLoadingStatus").textContent = "✅ " + allMessages.length + " ta xabar" + (msgsHasMore?" (yana bor)":"");
-      document.getElementById("msgLoadingStatus").style.color = "var(--success)";
-
+      const resp=await fetch("/api/messages?limit="+PAGE_SIZE+"&offset_id="+msgsNextOffset);
+      const data=await resp.json();
+      if(!data.ok){document.getElementById("msgLoadingStatus").textContent="❌ "+data.error;document.getElementById("msgLoadingStatus").style.color="var(--danger)";msgsLoading=false;return;}
+      allMessages=allMessages.concat(data.messages);
+      filteredMessages=[...allMessages];
+      msgsHasMore=data.has_more; msgsNextOffset=data.next_offset||0; msgsLoaded=true;
+      document.getElementById("msgTotalCount").textContent=allMessages.length+(msgsHasMore?"+":"");
+      document.getElementById("msgLoadingStatus").textContent="✅ "+allMessages.length+" ta"+(msgsHasMore?" (yana bor)":"");
+      document.getElementById("msgLoadingStatus").style.color="var(--success)";
       renderMessages(filteredMessages);
-
-      const lm = document.getElementById("msgLoadMore");
-      const lmBtn = document.getElementById("msgLoadMoreBtn");
-      lm.style.display = msgsHasMore ? "block" : "none";
-      lmBtn.disabled = false;
-      lmBtn.textContent = "⬇️ Yana yuklash";
-    } catch(e) {
-      document.getElementById("msgLoadingStatus").textContent = "❌ Xato";
-      document.getElementById("msgLoadingStatus").style.color = "var(--danger)";
-    }
-    msgsLoading = false;
+      const lm=document.getElementById("msgLoadMore");
+      const lmBtn=document.getElementById("msgLoadMoreBtn");
+      lm.style.display=msgsHasMore?"block":"none";
+      lmBtn.disabled=false; lmBtn.textContent="⬇️ Yana yuklash";
+    } catch(e){document.getElementById("msgLoadingStatus").textContent="❌ Xato";document.getElementById("msgLoadingStatus").style.color="var(--danger)";}
+    msgsLoading=false;
   }
 
-  async function loadMoreMessages() {
-    const btn = document.getElementById("msgLoadMoreBtn");
-    btn.disabled = true;
-    btn.textContent = "⏳ Yuklanmoqda...";
+  async function loadMoreMessages(){
+    const btn=document.getElementById("msgLoadMoreBtn");
+    btn.disabled=true; btn.textContent="⏳ Yuklanmoqda...";
     await loadMessages();
   }
 
   function renderMessages(msgs) {
-    const list = document.getElementById("messagesList");
-    if (!msgs.length) {
-      list.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Xabarlar topilmadi</p></div>';
-      return;
-    }
-    const icons = {video:'🎬',photo:'🖼️',document:'📄',audio:'🎵',text:'💬',media:'📎'};
-    list.innerHTML = msgs.map(m => {
-      const icon = icons[m.type]||'💬';
-      const canSend = m.type==='video'||m.type==='document';
-      const sendBtn = canSend ?
-        '<button class="msg-send-btn" onclick="openNameModal('+m.id+',\''+escAttr(m.link)+'\',\''+escAttr(m.text||'Video')+'\')">▶ Drive ga yuklash</button>' : '';
+    const list=document.getElementById("messagesList");
+    if(!msgs.length){list.innerHTML='<div class="empty-state"><div class="icon">📭</div><p>Xabarlar topilmadi</p></div>';return;}
+    const icons={video:'🎬',photo:'🖼️',document:'📄',audio:'🎵',text:'💬',media:'📎'};
+    list.innerHTML=msgs.map(m=>{
+      const icon=icons[m.type]||'💬';
+      const canSend=m.type==='video'||m.type==='document';
+      const sendBtn=canSend?'<button class="msg-send-btn" onclick="openNameModal('+m.id+',\''+escAttr(m.link)+'\',\''+escAttr(m.plain||'')+'\')">▶ Drive ga yuklash</button>':'';
+      // Matnni formatlash: [nom](url) ni havola qilamiz
+      const htmlText = formatMsgText(m.text||'');
       return '<div class="msg-card">'+
         '<div class="msg-header">'+
           '<span class="msg-type-icon">'+icon+'</span>'+
@@ -411,146 +384,206 @@
           (m.views?'<span class="msg-views">👁 '+m.views+'</span>':'')+
           '<span class="msg-date">📅 '+m.date+'</span>'+
         '</div>'+
-        (m.text?'<div class="msg-text">'+m.text+'</div>':'')+
+        (htmlText?'<div class="msg-text">'+htmlText+'</div>':'')+
         (m.size_mb?'<div class="msg-media-row"><span class="meta-tag size">📦 '+m.size_mb+'MB</span></div>':'')+
         sendBtn+
       '</div>';
     }).join("");
   }
 
+  function formatMsgText(text) {
+    if (!text) return '';
+    // Agar server HTML yuborgan bo'lsa — ishlatamiz
+    // Lekin [nom](url) ni JS da ham aniqlash
+    let result = text;
+
+    // [nom](url) formatini havola qilish
+    result = result.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, function(match, name, url) {
+      const postId = extractPostId(url);
+      if (postId) {
+        return '<a class="tg-link" onclick="handleTgLink(event,\''+escAttr(url)+'\','+postId+')" href="#">'+escHtml(name)+'</a>';
+      }
+      return '<a class="tg-link" href="'+url+'" target="_blank">'+escHtml(name)+'</a>';
+    });
+
+    // Oddiy t.me havolalarini ham aniqlash
+    result = result.replace(/(https?:\/\/t\.me\/[^\s<>"]+)/g, function(url) {
+      const postId = extractPostId(url);
+      if (postId) {
+        return '<a class="tg-link" onclick="handleTgLink(event,\''+escAttr(url)+'\','+postId+')" href="#">'+url+'</a>';
+      }
+      return '<a class="tg-link" href="'+url+'" target="_blank">'+url+'</a>';
+    });
+
+    return result;
+  }
+
+  function extractPostId(url) {
+    // t.me/channel/123 dan 123 ni olish
+    const m = url.match(/t\.me\/[^\/]+\/(\d+)/);
+    return m ? parseInt(m[1]) : null;
+  }
+
+  function handleTgLink(event, url, postId) {
+    event.preventDefault();
+    // Saytdagi videolar ichidan qidirish
+    const post = allPosts.find(p => p.id === postId);
+    if (post) {
+      // Video topildi — popup ko'rsat
+      showVideoPopup(post);
+    } else {
+      // Videolar ichida yo'q — yuklab topish
+      fetchAndShowPost(url, postId);
+    }
+  }
+
+  function showVideoPopup(post) {
+    popupPostId = post.id;
+    popupPostLink = post.link;
+    document.getElementById("popupTitle").textContent = "🎬 " + post.title;
+    document.getElementById("popupInfo").innerHTML =
+      (post.size_mb ? "📦 Hajm: <b>"+post.size_mb+"MB</b><br>" : "") +
+      (post.date ? "📅 Sana: "+post.date+"<br>" : "") +
+      (post.views ? "👁 Ko'rishlar: "+post.views : "");
+    document.getElementById("videoPopup").classList.add("open");
+  }
+
+  async function fetchAndShowPost(url, postId) {
+    showToast("⏳ Video qidirilmoqda...", "info");
+    // Videolar to'liq yuklanmagan bo'lishi mumkin
+    // Havola URL ni to'g'ridan-to'g'ri yuboramiz
+    popupPostId = postId;
+    popupPostLink = url;
+    document.getElementById("popupTitle").textContent = "🎬 Video #" + postId;
+    document.getElementById("popupInfo").innerHTML = "Havola: <code>"+url+"</code>";
+    document.getElementById("videoPopup").classList.add("open");
+  }
+
+  function closeVideoPopup() {
+    document.getElementById("videoPopup").classList.remove("open");
+    popupPostId = null; popupPostLink = null;
+  }
+
+  function sendFromPopup() {
+    if (!popupPostLink) return;
+    const post = allPosts.find(p => p.id === popupPostId);
+    closeVideoPopup();
+    openNameModal(popupPostId, popupPostLink, post ? post.title : "Video #"+popupPostId);
+  }
+
+  // === QIDIRUV (MESSAGES) ===
   function filterMessages() {
     const q = document.getElementById("msgSearchInput").value.toLowerCase().trim();
-    filteredMessages = allMessages.filter(m => !q || (m.text||"").toLowerCase().includes(q));
-    document.getElementById("msgTotalCount").textContent = filteredMessages.length;
+    if (!q) {
+      filteredMessages = [...allMessages];
+      document.getElementById("msgSearchCount").style.display = "none";
+    } else {
+      filteredMessages = allMessages.filter(m => {
+        const plain = (m.plain||"").toLowerCase();
+        const text = (m.text||"").replace(/<[^>]+>/g,'').toLowerCase();
+        return plain.includes(q) || text.includes(q);
+      });
+      document.getElementById("msgSearchCount").style.display = "inline";
+      document.getElementById("msgFoundCount").textContent = filteredMessages.length;
+    }
+    document.getElementById("msgTotalCount").textContent = q ? allMessages.length : (allMessages.length+(msgsHasMore?"+":""));
     renderMessages(filteredMessages);
   }
 
   // === MODAL ===
   function openNameModal(id, link, title) {
-    pendingId = id; pendingLink = link; pendingIsBulk = false;
-    const suggested = (title||'').replace(/[<>:"\/\\|?*]/g,'').trim().substring(0,80);
-    document.getElementById("nameInput").value = suggested;
-    document.getElementById("modalDesc").textContent = '"'+(title||'').substring(0,50)+'" — Drive da qanday nom bilan saqlansin?';
+    pendingId=id; pendingLink=link; pendingIsBulk=false;
+    const suggested=(title||'').replace(/[<>:"\/\\|?*]/g,'').trim().substring(0,80);
+    document.getElementById("nameInput").value=suggested;
+    document.getElementById("modalDesc").textContent='"'+(title||'').substring(0,50)+'" — Drive da qanday nom?';
     document.getElementById("nameModal").classList.add("open");
-    setTimeout(() => { const i=document.getElementById("nameInput"); i.focus(); i.select(); }, 150);
+    setTimeout(()=>{const i=document.getElementById("nameInput");i.focus();i.select();},150);
   }
 
   function openBulkModal() {
-    pendingIsBulk = true; pendingLinks = [];
-    selectedIds.forEach(id => { const p=allPosts.find(p=>p.id===id); if(p) pendingLinks.push({link:p.link,title:p.title}); });
-    document.getElementById("nameInput").value = "";
-    document.getElementById("modalDesc").textContent = pendingLinks.length+" ta video uchun prefiks (ixtiyoriy):";
+    pendingIsBulk=true; pendingLinks=[];
+    selectedIds.forEach(id=>{const p=allPosts.find(p=>p.id===id);if(p)pendingLinks.push({link:p.link,title:p.title});});
+    document.getElementById("nameInput").value="";
+    document.getElementById("modalDesc").textContent=pendingLinks.length+" ta video uchun prefiks (ixtiyoriy):";
     document.getElementById("nameModal").classList.add("open");
-    setTimeout(() => document.getElementById("nameInput").focus(), 150);
+    setTimeout(()=>document.getElementById("nameInput").focus(),150);
   }
 
   function closeModal() {
     document.getElementById("nameModal").classList.remove("open");
-    pendingLink=null; pendingId=null; pendingIsBulk=false; pendingLinks=[];
+    pendingLink=null;pendingId=null;pendingIsBulk=false;pendingLinks=[];
   }
 
   async function confirmSend() {
-    const name = document.getElementById("nameInput").value.trim();
+    const name=document.getElementById("nameInput").value.trim();
     closeModal();
-    if (pendingIsBulk) await sendBulkWithNames(pendingLinks, name);
-    else await sendOne(pendingId, pendingLink, name);
+    if(pendingIsBulk) await sendBulkWithNames(pendingLinks,name);
+    else await sendOne(pendingId,pendingLink,name);
   }
 
   // === SELECTION ===
-  function toggleSelect(id, event) {
-    if (event.target.classList.contains("send-btn")) return;
-    if (selectedIds.has(id)) selectedIds.delete(id); else selectedIds.add(id);
-    updateBulkUI(); rerenderCard(id);
-  }
-  function clearSelection() { selectedIds.clear(); updateBulkUI(); renderPosts(filteredPosts); }
-  function updateBulkUI() {
-    const count = selectedIds.size;
-    document.getElementById("bulkCount").textContent = count;
-    document.getElementById("bulkInfo").classList.toggle("visible", count>0);
-    const btn = document.getElementById("bulkSendBtn");
-    btn.disabled = count===0;
-    btn.textContent = count>1 ? "▶ "+count+" ta Yuborish" : "▶ Yuborish";
-  }
-  function rerenderCard(id) {
-    const c = document.getElementById("card-"+id);
-    if (c) c.classList.toggle("selected", selectedIds.has(id));
-  }
-  function sendSelected() {
-    if (selectedIds.size===0) return;
-    if (selectedIds.size===1) { const id=[...selectedIds][0]; const p=allPosts.find(p=>p.id===id); if(p) openNameModal(id,p.link,p.title); }
-    else openBulkModal();
-  }
+  function toggleSelect(id,event){if(event.target.classList.contains("send-btn"))return;if(selectedIds.has(id))selectedIds.delete(id);else selectedIds.add(id);updateBulkUI();rerenderCard(id);}
+  function clearSelection(){selectedIds.clear();updateBulkUI();renderPosts(filteredPosts);}
+  function updateBulkUI(){const count=selectedIds.size;document.getElementById("bulkCount").textContent=count;document.getElementById("bulkInfo").classList.toggle("visible",count>0);const btn=document.getElementById("bulkSendBtn");btn.disabled=count===0;btn.textContent=count>1?"▶ "+count+" ta Yuborish":"▶ Yuborish";}
+  function rerenderCard(id){const c=document.getElementById("card-"+id);if(c)c.classList.toggle("selected",selectedIds.has(id));}
+  function sendSelected(){if(selectedIds.size===0)return;if(selectedIds.size===1){const id=[...selectedIds][0];const p=allPosts.find(p=>p.id===id);if(p)openNameModal(id,p.link,p.title);}else openBulkModal();}
 
   // === SEND ===
-  async function sendOne(id, link, name) {
-    if (sendingIds.has(id)) return;
+  async function sendOne(id,link,name){
+    if(sendingIds.has(id))return;
     sendingIds.add(id);
-    const card = document.getElementById("card-"+id);
-    if (card) card.classList.add("sending");
-    try {
-      const resp = await fetch("/api/send", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({link,name}) });
-      const data = await resp.json();
+    const card=document.getElementById("card-"+id);
+    if(card)card.classList.add("sending");
+    try{
+      const resp=await fetch("/api/send",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({link,name})});
+      const data=await resp.json();
       sendingIds.delete(id);
-      if (data.ok) {
-        sentIds.add(id);
-        document.getElementById("sentCount").textContent = parseInt(document.getElementById("sentCount").textContent)+1;
-        if (card) { card.classList.remove("sending"); card.classList.add("sent"); }
-        showToast('✅ "'+(name||'Video')+'" yuborildi!', "success");
-      } else {
-        if (card) card.classList.remove("sending");
-        showToast("❌ "+data.error, "error");
-      }
-    } catch(e) { sendingIds.delete(id); if(card) card.classList.remove("sending"); showToast("❌ Server xatosi","error"); }
+      if(data.ok){sentIds.add(id);document.getElementById("sentCount").textContent=parseInt(document.getElementById("sentCount").textContent)+1;if(card){card.classList.remove("sending");card.classList.add("sent");}showToast('✅ "'+(name||'Video')+'" yuborildi!',"success");}
+      else{if(card)card.classList.remove("sending");showToast("❌ "+data.error,"error");}
+    }catch(e){sendingIds.delete(id);if(card)card.classList.remove("sending");showToast("❌ Server xatosi","error");}
   }
 
-  async function sendBulkWithNames(items, prefix) {
-    showToast("⏳ "+items.length+" ta video yuborilmoqda...", "info");
-    const links = items.map(i=>i.link);
-    try {
-      const resp = await fetch("/api/send_bulk", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({links,prefix}) });
-      const data = await resp.json();
-      if (data.ok) {
-        const success = data.results.filter(r=>r.ok).length;
-        const failed = data.results.filter(r=>!r.ok).length;
-        data.results.forEach(r => {
-          if (r.ok) { const p=allPosts.find(p=>p.link===r.link); if(p){sentIds.add(p.id);const c=document.getElementById("card-"+p.id);if(c){c.classList.remove("selected","sending");c.classList.add("sent");}}}
-        });
-        document.getElementById("sentCount").textContent = parseInt(document.getElementById("sentCount").textContent)+success;
+  async function sendBulkWithNames(items,prefix){
+    showToast("⏳ "+items.length+" ta yuborilmoqda...","info");
+    const links=items.map(i=>i.link);
+    try{
+      const resp=await fetch("/api/send_bulk",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({links,prefix})});
+      const data=await resp.json();
+      if(data.ok){
+        const success=data.results.filter(r=>r.ok).length;
+        const failed=data.results.filter(r=>!r.ok).length;
+        data.results.forEach(r=>{if(r.ok){const p=allPosts.find(p=>p.link===r.link);if(p){sentIds.add(p.id);const c=document.getElementById("card-"+p.id);if(c){c.classList.remove("selected","sending");c.classList.add("sent");}}}});
+        document.getElementById("sentCount").textContent=parseInt(document.getElementById("sentCount").textContent)+success;
         clearSelection();
-        showToast("✅ "+success+" ta yuborildi"+(failed?", "+failed+" ta xato":"")+"!", "success");
+        showToast("✅ "+success+" ta yuborildi"+(failed?", "+failed+" ta xato":"")+"!","success");
       }
-    } catch(e) { showToast("❌ Tarmoq xatosi","error"); }
+    }catch(e){showToast("❌ Tarmoq xatosi","error");}
   }
 
-  async function sendByNumber() {
-    const num = parseInt(document.getElementById("numInput").value);
-    if (!num||num<1) { showToast("⚠️ Raqam kiriting!","error"); return; }
-    if (num>filteredPosts.length) { showToast("⚠️ Faqat "+filteredPosts.length+" ta video yuklangan","error"); return; }
-    const post = filteredPosts[num-1];
-    document.getElementById("numInput").value = "";
-    openNameModal(post.id, post.link, post.title);
+  async function sendByNumber(){
+    const num=parseInt(document.getElementById("numInput").value);
+    if(!num||num<1){showToast("⚠️ Raqam kiriting!","error");return;}
+    if(num>filteredPosts.length){showToast("⚠️ Faqat "+filteredPosts.length+" ta yuklangan","error");return;}
+    const post=filteredPosts[num-1];
+    document.getElementById("numInput").value="";
+    openNameModal(post.id,post.link,post.title);
   }
 
   // === UI ===
-  function showSkeletons() { document.getElementById("videosGrid").innerHTML = Array(4).fill('<div class="skeleton"></div>').join(""); }
-  function showEmpty(msg) { document.getElementById("videosGrid").innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>'+msg+'</p></div>'; }
-  function setStatus(msg, type) { const el=document.getElementById("loadingStatus"); el.textContent=msg; el.style.color="var(--"+(type||"text2")+")"; }
-  function showToast(msg, type) {
-    const c=document.getElementById("toastContainer");
-    const t=document.createElement("div");
-    t.className="toast "+(type||"info"); t.textContent=msg; c.appendChild(t);
-    setTimeout(()=>t.classList.add("show"),10);
-    setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},3500);
-  }
-  function escHtml(str) { return (str||'').replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
-  function escAttr(str) { return (str||'').replace(/'/g,"\\'").replace(/\n/g,' '); }
+  function showSkeletons(){document.getElementById("videosGrid").innerHTML=Array(4).fill('<div class="skeleton"></div>').join("");}
+  function showEmpty(msg){document.getElementById("videosGrid").innerHTML='<div class="empty-state"><div class="icon">📭</div><p>'+msg+'</p></div>';}
+  function setStatus(msg,type){const el=document.getElementById("loadingStatus");el.textContent=msg;el.style.color="var(--"+(type||"text2")+")";}
+  function showToast(msg,type){const c=document.getElementById("toastContainer");const t=document.createElement("div");t.className="toast "+(type||"info");t.textContent=msg;c.appendChild(t);setTimeout(()=>t.classList.add("show"),10);setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},3500);}
+  function escHtml(str){return(str||'').replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+  function escAttr(str){return(str||'').replace(/'/g,"\\'").replace(/\n/g,' ');}
 
-  document.addEventListener("keydown", e => {
-    if (e.key==="Enter"&&document.activeElement.id==="numInput") sendByNumber();
-    if (e.key==="Enter"&&document.activeElement.id==="nameInput") confirmSend();
-    if (e.key==="Escape") closeModal();
+  document.addEventListener("keydown",e=>{
+    if(e.key==="Enter"&&document.activeElement.id==="numInput")sendByNumber();
+    if(e.key==="Enter"&&document.activeElement.id==="nameInput")confirmSend();
+    if(e.key==="Escape"){closeModal();closeVideoPopup();}
   });
-  document.getElementById("nameModal").addEventListener("click", e => { if(e.target===document.getElementById("nameModal")) closeModal(); });
+  document.getElementById("nameModal").addEventListener("click",e=>{if(e.target===document.getElementById("nameModal"))closeModal();});
+  document.getElementById("videoPopup").addEventListener("click",e=>{if(e.target===document.getElementById("videoPopup"))closeVideoPopup();});
 
   loadPosts();
 </script>
