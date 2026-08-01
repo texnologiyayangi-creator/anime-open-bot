@@ -127,6 +127,16 @@
     .modal-btns { display: flex; gap: 10px; }
     .modal-btns .btn { flex: 1; justify-content: center; }
 
+    /* BULK TYPE BTN */
+    .bulk-type-btn { flex: 1; background: var(--surface2); border: 1.5px solid var(--border); color: var(--text2); border-radius: 10px; padding: 9px 12px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.15s; text-align: center; }
+    .bulk-type-btn.active { background: var(--accent); color: #0d0d1a; border-color: var(--accent); }
+    .bulk-type-btn:hover:not(.active) { background: var(--border); color: var(--text); }
+    #seqStart:focus, #seqName:focus, #seqSuffix:focus { border-color: var(--accent); }
+    .each-input-row { display: flex; align-items: center; gap: 8px; }
+    .each-input-row span { font-size: 0.75rem; color: var(--text3); min-width: 20px; text-align: right; }
+    .each-input-row input { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; color: var(--text); font-size: 0.86rem; outline: none; }
+    .each-input-row input:focus { border-color: var(--accent); }
+
     .toast-container { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 8px; z-index: 1000; }
     .toast { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 18px; font-size: 0.85rem; font-weight: 600; color: var(--text); box-shadow: 0 8px 32px rgba(0,0,0,0.4); transform: translateX(120%); transition: transform 0.3s; max-width: 300px; }
     .toast.show { transform: translateX(0); }
@@ -220,7 +230,7 @@
   </div>
 </div>
 
-<!-- NOM MODAL -->
+<!-- NOM MODAL (oddiy) -->
 <div class="modal-overlay" id="nameModal">
   <div class="modal">
     <h3>📝 Video nomi</h3>
@@ -229,6 +239,45 @@
     <div class="modal-btns">
       <button class="btn btn-ghost" onclick="closeModal()">Bekor</button>
       <button class="btn btn-primary" onclick="confirmSend()">✅ Yuborish</button>
+    </div>
+  </div>
+</div>
+
+<!-- BULK MODAL -->
+<div class="modal-overlay" id="bulkModal">
+  <div class="modal" style="max-width:480px">
+    <h3>📦 <span id="bulkModalTitle">5 ta video yuborish</span></h3>
+
+    <!-- Tanlov -->
+    <div style="display:flex;gap:10px;margin-bottom:16px">
+      <button class="bulk-type-btn active" id="btnSeq" onclick="setBulkType('seq')">
+        🔢 Ketma-ket nom
+      </button>
+      <button class="bulk-type-btn" id="btnEach" onclick="setBulkType('each')">
+        ✏️ Har biriga nom
+      </button>
+    </div>
+
+    <!-- Ketma-ket nom -->
+    <div id="seqSection">
+      <p style="font-size:0.82rem;color:var(--text2);margin-bottom:10px">Bitta nom kiriting — raqam avtomatik oshib boradi</p>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <input type="text" id="seqName" placeholder="Masalan: Qora clever" oninput="updateSeqPreview()" style="flex:2;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:0.9rem;outline:none">
+        <input type="number" id="seqStart" placeholder="150" oninput="updateSeqPreview()" min="1" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:0.9rem;outline:none;text-align:center">
+        <input type="text" id="seqSuffix" placeholder="qism" oninput="updateSeqPreview()" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:0.9rem;outline:none">
+      </div>
+      <div id="seqPreview" style="font-size:0.78rem;color:var(--accent);margin-bottom:14px;padding:8px 12px;background:var(--surface2);border-radius:8px;line-height:1.7"></div>
+    </div>
+
+    <!-- Har biriga nom -->
+    <div id="eachSection" style="display:none">
+      <p style="font-size:0.82rem;color:var(--text2);margin-bottom:10px">Har bir video uchun alohida nom kiriting</p>
+      <div id="eachInputs" style="display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;margin-bottom:14px"></div>
+    </div>
+
+    <div class="modal-btns">
+      <button class="btn btn-ghost" onclick="closeBulkModal()">Bekor</button>
+      <button class="btn btn-primary" onclick="confirmBulkSend()">✅ Yuborish</button>
     </div>
   </div>
 </div>
@@ -502,13 +551,112 @@
     setTimeout(()=>{const i=document.getElementById("nameInput");i.focus();i.select();},150);
   }
 
+  let bulkType = 'seq'; // 'seq' yoki 'each'
+  let bulkItems = []; // {id, link, title}
+
   function openBulkModal() {
-    pendingIsBulk=true; pendingLinks=[];
-    selectedIds.forEach(id=>{const p=allPosts.find(p=>p.id===id);if(p)pendingLinks.push({link:p.link,title:p.title});});
-    document.getElementById("nameInput").value="";
-    document.getElementById("modalDesc").textContent=pendingLinks.length+" ta video uchun prefiks (ixtiyoriy):";
-    document.getElementById("nameModal").classList.add("open");
-    setTimeout(()=>document.getElementById("nameInput").focus(),150);
+    bulkItems = [];
+    selectedIds.forEach(id => {
+      const p = allPosts.find(p => p.id == id);
+      if (p) bulkItems.push({id: p.id, link: p.link, title: p.title});
+    });
+
+    document.getElementById("bulkModalTitle").textContent = bulkItems.length + " ta video yuborish";
+    setBulkType('seq');
+    document.getElementById("bulkModal").classList.add("open");
+    setTimeout(() => document.getElementById("seqName").focus(), 150);
+  }
+
+  function closeBulkModal() {
+    document.getElementById("bulkModal").classList.remove("open");
+    bulkItems = [];
+  }
+
+  function setBulkType(type) {
+    bulkType = type;
+    document.getElementById("btnSeq").classList.toggle("active", type === 'seq');
+    document.getElementById("btnEach").classList.toggle("active", type === 'each');
+    document.getElementById("seqSection").style.display = type === 'seq' ? 'block' : 'none';
+    document.getElementById("eachSection").style.display = type === 'each' ? 'block' : 'none';
+
+    if (type === 'seq') {
+      updateSeqPreview();
+    } else {
+      buildEachInputs();
+    }
+  }
+
+  function updateSeqPreview() {
+    const name = document.getElementById("seqName").value.trim();
+    const start = parseInt(document.getElementById("seqStart").value) || 1;
+    const suffix = document.getElementById("seqSuffix").value.trim();
+    const preview = document.getElementById("seqPreview");
+    if (!name) { preview.textContent = "Nom kiriting..."; return; }
+    const lines = bulkItems.map((item, i) => {
+      const num = start + i;
+      return (i+1) + ". " + name + " " + num + (suffix ? " " + suffix : "");
+    });
+    preview.innerHTML = lines.join("<br>");
+  }
+
+  function buildEachInputs() {
+    const container = document.getElementById("eachInputs");
+    container.innerHTML = bulkItems.map((item, i) => {
+      const suggested = (item.title || "Video #"+item.id).replace(/[<>:"\/\\|?*]/g,'').trim().substring(0,80);
+      return '<div class="each-input-row">' +
+        '<span>' + (i+1) + '.</span>' +
+        '<input type="text" id="each_' + i + '" value="' + suggested.replace(/"/g,"&quot;") + '" placeholder="Video nomi..." maxlength="100">' +
+        '</div>';
+    }).join("");
+  }
+
+  async function confirmBulkSend() {
+    if (bulkItems.length === 0) return;
+
+    if (bulkType === 'seq') {
+      const name = document.getElementById("seqName").value.trim();
+      const start = parseInt(document.getElementById("seqStart").value) || 1;
+      const suffix = document.getElementById("seqSuffix").value.trim();
+      if (!name) { showToast("⚠️ Nom kiriting!", "error"); return; }
+
+      closeBulkModal();
+      clearSelection();
+      showToast("⏳ " + bulkItems.length + " ta video yuborilmoqda...", "info");
+
+      for (let i = 0; i < bulkItems.length; i++) {
+        const item = bulkItems[i];
+        const num = start + i;
+        const fullName = name + " " + num + (suffix ? " " + suffix : "");
+        await sendOneItem(item.id, item.link, fullName, i);
+      }
+
+    } else {
+      // Har biriga nom
+      const names = bulkItems.map((item, i) => {
+        const inp = document.getElementById("each_" + i);
+        return inp ? inp.value.trim() : "";
+      });
+
+      if (names.some(n => !n)) { showToast("⚠️ Barcha nomllarni kiriting!", "error"); return; }
+
+      closeBulkModal();
+      clearSelection();
+      showToast("⏳ " + bulkItems.length + " ta video yuborilmoqda...", "info");
+
+      for (let i = 0; i < bulkItems.length; i++) {
+        await sendOneItem(bulkItems[i].id, bulkItems[i].link, names[i], i);
+      }
+    }
+  }
+
+  async function sendOneItem(id, link, name, index) {
+    // Har bir video orasida 3 sekund kutish (bot nom so'rashga ulgurin)
+    if (index > 0) await delay(3000);
+    await sendOne(id, link, name);
+  }
+
+  function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   function closeModal() {
@@ -658,4 +806,4 @@
   loadPosts();
 </script>
 </body>
-</html>
+        </html>
