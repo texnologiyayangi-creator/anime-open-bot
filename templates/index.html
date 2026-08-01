@@ -127,6 +127,19 @@
     .modal-btns { display: flex; gap: 10px; }
     .modal-btns .btn { flex: 1; justify-content: center; }
 
+    /* HISTORY */
+    .history-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+    .history-card.success { border-left: 3px solid var(--success); }
+    .history-card.pending { border-left: 3px solid var(--warning); }
+    .history-card.error { border-left: 3px solid var(--danger); }
+    .history-card.sending { border-left: 3px solid var(--accent); }
+    .history-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .history-status { font-size: 1rem; flex-shrink: 0; }
+    .history-name { font-size: 0.88rem; color: var(--text); font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .history-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .history-progress { height: 4px; background: var(--border); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+    .history-progress-bar { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; }
+
     /* BULK TYPE BTN */
     .bulk-type-btn { flex: 1; background: var(--surface2); border: 1.5px solid var(--border); color: var(--text2); border-radius: 10px; padding: 9px 12px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.15s; text-align: center; }
     .bulk-type-btn.active { background: var(--accent); color: #0d0d1a; border-color: var(--accent); }
@@ -168,6 +181,7 @@
 <div class="tabs">
   <div class="tab active" onclick="switchTab('videos')">🎬 Videolar</div>
   <div class="tab" onclick="switchTab('messages')">💬 Xabarlar</div>
+  <div class="tab" onclick="switchTab('history')">📋 Tarix</div>
 </div>
 
 <!-- VIDEOS TAB -->
@@ -243,6 +257,23 @@
   </div>
 </div>
 
+<!-- HISTORY TAB -->
+<div id="tab-history" class="tab-content">
+  <div class="stats-bar">
+    <span>📋 Jami: <b id="historyCount">0</b> ta</span>
+    <span>✅ <span id="historySuccess">0</span> muvaffaqiyatli</span>
+    <span>⏳ <span id="historyPending">0</span> navbatda</span>
+  </div>
+  <div class="content">
+    <div style="margin-bottom:12px;display:flex;gap:8px">
+      <button class="btn btn-ghost" onclick="clearHistory()" style="font-size:0.8rem">🗑 Tozalash</button>
+    </div>
+    <div id="historyList">
+      <div class="empty-state"><div class="icon">📋</div><p>Hali hech narsa yuborilmagan</p></div>
+    </div>
+  </div>
+</div>
+
 <!-- BULK MODAL -->
 <div class="modal-overlay" id="bulkModal">
   <div class="modal" style="max-width:480px">
@@ -309,15 +340,82 @@
   // === TABS ===
   function switchTab(tab) {
     currentTab = tab;
-    document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active',(i===0&&tab==='videos')||(i===1&&tab==='messages')));
+    document.querySelectorAll('.tab').forEach((t,i) => {
+      t.classList.toggle('active',
+        (i===0&&tab==='videos')||(i===1&&tab==='messages')||(i===2&&tab==='history')
+      );
+    });
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     document.getElementById('tab-'+tab).classList.add('active');
     if (tab==='messages' && !msgsLoaded) loadMessages();
+    if (tab==='history') renderHistory();
   }
 
   function reloadCurrent() {
     if (currentTab==='videos') { allPosts=[]; filteredPosts=[]; postsNextOffset=0; loadPosts(); }
     else { allMessages=[]; filteredMessages=[]; msgsNextOffset=0; msgsLoaded=false; loadMessages(); }
+  }
+
+
+  // === HISTORY ===
+  let historyItems = []; // {id, name, link, status, time, size_mb}
+
+  function addToHistory(id, name, link, status='pending') {
+    const item = {
+      id, name, link, status,
+      time: new Date().toLocaleTimeString('uz', {hour:'2-digit',minute:'2-digit'}),
+      date: new Date().toLocaleDateString('uz'),
+      size_mb: 0
+    };
+    historyItems.unshift(item);
+    updateHistoryStats();
+    if (currentTab === 'history') renderHistory();
+  }
+
+  function updateHistoryItem(id, status) {
+    const item = historyItems.find(h => h.id === id && h.status !== 'success');
+    if (item) {
+      item.status = status;
+      updateHistoryStats();
+      if (currentTab === 'history') renderHistory();
+    }
+  }
+
+  function updateHistoryStats() {
+    document.getElementById("historyCount").textContent = historyItems.length;
+    document.getElementById("historySuccess").textContent = historyItems.filter(h=>h.status==='success').length;
+    document.getElementById("historyPending").textContent = historyItems.filter(h=>h.status==='pending'||h.status==='sending').length;
+  }
+
+  function renderHistory() {
+    const list = document.getElementById("historyList");
+    if (!historyItems.length) {
+      list.innerHTML = '<div class="empty-state"><div class="icon">📋</div><p>Hali hech narsa yuborilmagan</p></div>';
+      return;
+    }
+    const statusIcon = {success:'✅', pending:'⏳', sending:'🔄', error:'❌'};
+    const statusText = {success:'Yuklandi', pending:'Navbatda', sending:'Yuborilmoqda...', error:'Xatolik'};
+    list.innerHTML = historyItems.map((h,i) => {
+      return '<div class="history-card ' + h.status + '">' +
+        '<div class="history-row">' +
+          '<span class="history-status">' + (statusIcon[h.status]||'⏳') + '</span>' +
+          '<span class="history-name">' + escHtml(h.name) + '</span>' +
+        '</div>' +
+        '<div class="history-meta">' +
+          '<span class="meta-tag">' + (statusText[h.status]||h.status) + '</span>' +
+          '<span class="meta-tag">🕐 ' + h.time + '</span>' +
+          '<span class="meta-tag">📅 ' + h.date + '</span>' +
+        '</div>' +
+        (h.status === 'sending' ? '<div class="history-progress"><div class="history-progress-bar" style="width:60%"></div></div>' : '') +
+      '</div>';
+    }).join("");
+  }
+
+  function clearHistory() {
+    historyItems = historyItems.filter(h => h.status === 'pending' || h.status === 'sending');
+    renderHistory();
+    updateHistoryStats();
+    showToast("✅ Tarix tozalandi", "success");
   }
 
   // === VIDEOS ===
@@ -744,21 +842,52 @@
   function clearSelection(){selectedIds.clear();updateBulkUI();renderPosts(filteredPosts);}
   function updateBulkUI(){const count=selectedIds.size;document.getElementById("bulkCount").textContent=count;document.getElementById("bulkInfo").classList.toggle("visible",count>0);const btn=document.getElementById("bulkSendBtn");btn.disabled=count===0;btn.textContent=count>1?"▶ "+count+" ta Yuborish":"▶ Yuborish";}
   function rerenderCard(id){const c=document.getElementById("card-"+id);if(c)c.classList.toggle("selected",selectedIds.has(id));}
-  function sendSelected(){if(selectedIds.size===0)return;if(selectedIds.size===1){const id=[...selectedIds][0];const p=allPosts.find(p=>p.id===id);if(p)openNameModal(id,p.link,p.title);}else openBulkModal();}
+  function sendSelected() {
+    if (selectedIds.size === 0) return;
+    if (selectedIds.size === 1) {
+      const id = [...selectedIds][0];
+      const p = allPosts.find(p => p.id == id); // == intentional
+      if (p) openNameModal(p.id, p.link, p.title);
+    } else {
+      openBulkModal();
+    }
+  }
 
   // === SEND ===
-  async function sendOne(id,link,name){
-    if(sendingIds.has(id))return;
+  async function sendOne(id, link, name) {
+    if (sendingIds.has(id)) return;
     sendingIds.add(id);
-    const card=document.getElementById("card-"+id);
-    if(card)card.classList.add("sending");
-    try{
-      const resp=await fetch("/api/send",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({link,name})});
-      const data=await resp.json();
+    const card = document.getElementById("card-"+id);
+    if (card) card.classList.add("sending");
+
+    // Tarixga qo'shish
+    addToHistory(id, name||'Video #'+id, link, 'sending');
+
+    try {
+      const resp = await fetch("/api/send", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({link, name})
+      });
+      const data = await resp.json();
       sendingIds.delete(id);
-      if(data.ok){sentIds.add(id);document.getElementById("sentCount").textContent=parseInt(document.getElementById("sentCount").textContent)+1;if(card){card.classList.remove("sending");card.classList.add("sent");}showToast('✅ "'+(name||'Video')+'" yuborildi!',"success");}
-      else{if(card)card.classList.remove("sending");showToast("❌ "+data.error,"error");}
-    }catch(e){sendingIds.delete(id);if(card)card.classList.remove("sending");showToast("❌ Server xatosi","error");}
+      if (data.ok) {
+        sentIds.add(id);
+        document.getElementById("sentCount").textContent = parseInt(document.getElementById("sentCount").textContent) + 1;
+        if (card) { card.classList.remove("sending"); card.classList.add("sent"); }
+        updateHistoryItem(id, 'success');
+        showToast('✅ "'+(name||'Video')+'" yuborildi!', "success");
+      } else {
+        if (card) card.classList.remove("sending");
+        updateHistoryItem(id, 'error');
+        showToast("❌ " + data.error, "error");
+      }
+    } catch(e) {
+      sendingIds.delete(id);
+      if (card) card.classList.remove("sending");
+      updateHistoryItem(id, 'error');
+      showToast("❌ Server xatosi", "error");
+    }
   }
 
   async function sendBulkWithNames(items,prefix){
@@ -806,4 +935,4 @@
   loadPosts();
 </script>
 </body>
-        </html>
+  </html>
