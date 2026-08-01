@@ -653,16 +653,23 @@
   let bulkItems = []; // {id, link, title}
 
   function openBulkModal() {
+    // selectedIds dan bulkItems ni to'ldiramiz
     bulkItems = [];
-    console.log("openBulkModal: selectedIds =", [...selectedIds], "allPosts count:", allPosts.length);
     selectedIds.forEach(id => {
       const p = allPosts.find(p => p.id == id);
-      console.log("id:", id, "type:", typeof id, "post:", p ? p.title : "TOPILMADI");
       if (p) bulkItems.push({id: p.id, link: p.link, title: p.title});
     });
-    console.log("bulkItems:", bulkItems.length);
+
+    if (bulkItems.length === 0) {
+      showToast("⚠️ Video tanlanmadi!", "error");
+      return;
+    }
 
     document.getElementById("bulkModalTitle").textContent = bulkItems.length + " ta video yuborish";
+    document.getElementById("seqStart").value = "";
+    document.getElementById("seqName").value = "";
+    document.getElementById("seqSuffix").value = "qism";
+    document.getElementById("seqPreview").textContent = "Nom kiriting...";
     setBulkType('seq');
     document.getElementById("bulkModal").classList.add("open");
     setTimeout(() => document.getElementById("seqName").focus(), 150);
@@ -712,9 +719,17 @@
   }
 
   async function confirmBulkSend() {
-    console.log("confirmBulkSend:", bulkItems.length, "ta item, selectedIds:", [...selectedIds]);
+    // bulkItems bo'sh bo'lsa selectedIds dan qayta to'ldiramiz
     if (bulkItems.length === 0) {
-      showToast("⚠️ Tanlangan video yo'q! selectedIds: " + selectedIds.size, "error");
+      bulkItems = [];
+      selectedIds.forEach(id => {
+        const p = allPosts.find(p => p.id == id);
+        if (p) bulkItems.push({id: p.id, link: p.link, title: p.title});
+      });
+    }
+
+    if (bulkItems.length === 0) {
+      showToast("⚠️ Tanlangan video topilmadi!", "error");
       return;
     }
 
@@ -724,32 +739,33 @@
       const suffix = document.getElementById("seqSuffix").value.trim();
       if (!name) { showToast("⚠️ Nom kiriting!", "error"); return; }
 
+      const items = [...bulkItems];
       closeBulkModal();
       clearSelection();
-      showToast("⏳ " + bulkItems.length + " ta video yuborilmoqda...", "info");
+      showToast("⏳ " + items.length + " ta video yuborilmoqda...", "info");
 
-      for (let i = 0; i < bulkItems.length; i++) {
-        const item = bulkItems[i];
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
         const num = start + i;
         const fullName = name + " " + num + (suffix ? " " + suffix : "");
         await sendOneItem(item.id, item.link, fullName, i);
       }
 
     } else {
-      // Har biriga nom
       const names = bulkItems.map((item, i) => {
         const inp = document.getElementById("each_" + i);
         return inp ? inp.value.trim() : "";
       });
 
-      if (names.some(n => !n)) { showToast("⚠️ Barcha nomllarni kiriting!", "error"); return; }
+      if (names.some(n => !n)) { showToast("⚠️ Barcha nomlarni kiriting!", "error"); return; }
 
+      const items = [...bulkItems];
       closeBulkModal();
       clearSelection();
-      showToast("⏳ " + bulkItems.length + " ta video yuborilmoqda...", "info");
+      showToast("⏳ " + items.length + " ta video yuborilmoqda...", "info");
 
-      for (let i = 0; i < bulkItems.length; i++) {
-        await sendOneItem(bulkItems[i].id, bulkItems[i].link, names[i], i);
+      for (let i = 0; i < items.length; i++) {
+        await sendOneItem(items[i].id, items[i].link, names[i], i);
       }
     }
   }
@@ -942,4 +958,4 @@
   loadPosts();
 </script>
 </body>
-</html>
+  </html>
