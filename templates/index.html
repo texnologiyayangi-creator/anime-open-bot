@@ -654,10 +654,13 @@
 
   function openBulkModal() {
     bulkItems = [];
+    console.log("openBulkModal: selectedIds =", [...selectedIds], "allPosts count:", allPosts.length);
     selectedIds.forEach(id => {
       const p = allPosts.find(p => p.id == id);
+      console.log("id:", id, "type:", typeof id, "post:", p ? p.title : "TOPILMADI");
       if (p) bulkItems.push({id: p.id, link: p.link, title: p.title});
     });
+    console.log("bulkItems:", bulkItems.length);
 
     document.getElementById("bulkModalTitle").textContent = bulkItems.length + " ta video yuborish";
     setBulkType('seq');
@@ -709,7 +712,11 @@
   }
 
   async function confirmBulkSend() {
-    if (bulkItems.length === 0) return;
+    console.log("confirmBulkSend:", bulkItems.length, "ta item, selectedIds:", [...selectedIds]);
+    if (bulkItems.length === 0) {
+      showToast("⚠️ Tanlangan video yo'q! selectedIds: " + selectedIds.size, "error");
+      return;
+    }
 
     if (bulkType === 'seq') {
       const name = document.getElementById("seqName").value.trim();
@@ -935,4 +942,4 @@
   loadPosts();
 </script>
 </body>
-  </html>
+</html>
