@@ -213,9 +213,11 @@ async def fetch_all_messages(offset_id=0, limit=50):
 
 async def send_to_bot(link, name=""):
     await ensure_connected()
+    # Avval URL yuboramiz — bot uni qabul qilib nom so'raydi
     await tele_client.send_message(BOT_USERNAME, link)
     if name:
-        await asyncio.sleep(0.5)
+        # Bot nom so'rashga vaqt berish uchun 2 sekund kutamiz
+        await asyncio.sleep(2)
         await tele_client.send_message(BOT_USERNAME, name)
     return True
 
@@ -226,11 +228,11 @@ def index():
 @app.route("/api/posts")
 def api_posts():
     limit = int(request.args.get("limit", 50))
-    offset_id = int(request.args.get("offset_id", 0))
     try:
+        offset_id = int(request.args.get("offset_id", 0) or 0)
         posts = run_async(fetch_channel_posts(offset_id=offset_id, limit=limit))
         has_more = len(posts) >= limit
-        next_offset = posts[-1]["id"] if posts else 0
+        next_offset = int(posts[-1]["id"]) if posts else 0
         return jsonify({"ok": True, "posts": posts, "has_more": has_more, "next_offset": next_offset})
     except Exception as e:
         logging.error(f"Posts xatosi: {e}")
@@ -239,11 +241,11 @@ def api_posts():
 @app.route("/api/messages")
 def api_messages():
     limit = int(request.args.get("limit", 50))
-    offset_id = int(request.args.get("offset_id", 0))
     try:
+        offset_id = int(request.args.get("offset_id", 0) or 0)
         messages = run_async(fetch_all_messages(offset_id=offset_id, limit=limit))
         has_more = len(messages) >= limit
-        next_offset = messages[-1]["id"] if messages else 0
+        next_offset = int(messages[-1]["id"]) if messages else 0
         return jsonify({"ok": True, "messages": messages, "has_more": has_more, "next_offset": next_offset})
     except Exception as e:
         logging.error(f"Messages xatosi: {e}")
