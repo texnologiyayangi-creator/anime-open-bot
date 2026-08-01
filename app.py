@@ -216,8 +216,8 @@ async def send_to_bot(link, name=""):
     # Avval URL yuboramiz — bot uni qabul qilib nom so'raydi
     await tele_client.send_message(BOT_USERNAME, link)
     if name:
-        # Bot nom so'rashga vaqt berish uchun 2 sekund kutamiz
-        await asyncio.sleep(2)
+        # Bot nom so'rashga vaqt berish uchun 3 sekund kutamiz
+        await asyncio.sleep(3)
         await tele_client.send_message(BOT_USERNAME, name)
     return True
 
