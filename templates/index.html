@@ -520,24 +520,34 @@
     if(!msgs.length){list.innerHTML='<div class="empty-state"><div class="icon">📭</div><p>Xabarlar topilmadi</p></div>';return;}
     const icons={video:'🎬',photo:'🖼️',document:'📄',audio:'🎵',text:'💬',media:'📎'};
     msgs.forEach(m => { if(m.link) linkMap[m.id] = m.link; });
+    // Avval placeholder bilan render qilamiz, keyin HTML textlarni kiritamiz
     list.innerHTML=msgs.map(m=>{
       const icon=icons[m.type]||'💬';
       const canSend=m.type==='video'||m.type==='document';
       const sendBtn=canSend?'<button class="msg-send-btn" onclick="sendMsg('+m.id+')">▶ Drive ga yuklash</button>':'';
-      // Matnni formatlash: [nom](url) ni havola qilamiz
-      const htmlText = formatMsgText(m.text||'');
-      return '<div class="msg-card">'+
+      return '<div class="msg-card" data-msgid="'+m.id+'">'+
         '<div class="msg-header">'+
           '<span class="msg-type-icon">'+icon+'</span>'+
           '<span class="msg-type-label">'+m.type+'</span>'+
           (m.views?'<span class="msg-views">👁 '+m.views+'</span>':'')+
           '<span class="msg-date">📅 '+m.date+'</span>'+
         '</div>'+
-        (htmlText?'<div class="msg-text">'+htmlText+'</div>':'')+
+        (m.text?'<div class="msg-text" data-raw="1">'+m.text+'</div>':'')+
         (m.size_mb?'<div class="msg-media-row"><span class="meta-tag size">📦 '+m.size_mb+'MB</span></div>':'')+
         sendBtn+
       '</div>';
     }).join("");
+
+    // msg-text elementlarini innerHTML bilan to'ldiramiz (HTML render uchun)
+    msgs.forEach(m => {
+      if (m.text) {
+        const card = list.querySelector('[data-msgid="'+m.id+'"]');
+        if (card) {
+          const textDiv = card.querySelector('.msg-text');
+          if (textDiv) textDiv.innerHTML = m.text;
+        }
+      }
+    });
   }
 
   function formatMsgText(text) {
@@ -575,14 +585,25 @@
 
   function handleTgLink(event, url, postId) {
     event.preventDefault();
-    // Saytdagi videolar ichidan qidirish
-    const post = allPosts.find(p => p.id === postId);
-    if (post) {
-      // Video topildi — popup ko'rsat
-      showVideoPopup(post);
+    // Videolar bo'limiga o'tamiz
+    switchTab('videos');
+    // O'sha video kartochkasini topamiz
+    const card = document.getElementById("card-" + postId);
+    if (card) {
+      // Scroll qilamiz
+      setTimeout(() => {
+        card.scrollIntoView({behavior: 'smooth', block: 'center'});
+        // Kartani highlight qilamiz
+        card.style.borderColor = 'var(--warning)';
+        card.style.boxShadow = '0 0 20px rgba(251,191,36,0.4)';
+        setTimeout(() => {
+          card.style.borderColor = '';
+          card.style.boxShadow = '';
+        }, 2500);
+      }, 300);
     } else {
-      // Videolar ichida yo'q — yuklab topish
-      fetchAndShowPost(url, postId);
+      // Videolar yuklanmagan bo'lishi mumkin - xabar beramiz
+      showToast("⚡ Video #" + postId + " — sahifani pastga aylantiring yoki Videolar bo'limida qidiring", "info");
     }
   }
 
@@ -958,4 +979,4 @@
   loadPosts();
 </script>
 </body>
-  </html>
+</html>
